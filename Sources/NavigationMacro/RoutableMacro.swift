@@ -11,6 +11,13 @@ import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 
+@main
+struct RoutableMacroPlugin: CompilerPlugin {
+    let providingMacros: [Macro.Type] = [
+        RoutableMacro.self,
+    ]
+}
+
 /// Macro implementation for @Routable
 public struct RoutableMacro: MemberMacro, ExtensionMacro {
 
@@ -39,11 +46,4 @@ public enum NavigationMacroError: Error, CustomStringConvertible {
             return "@Routable can only be applied to struct declarations"
         }
     }
-}
-
-@main
-struct RoutableMacroPlugin: CompilerPlugin {
-    let providingMacros: [Macro.Type] = [
-        RoutableMacro.self,
-    ]
 }

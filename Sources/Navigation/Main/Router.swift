@@ -7,8 +7,7 @@
 
 import SwiftUI
 
-@Observable
-public final class Router {
+public final class Router<Destination: Hashable & Identifiable & CustomStringConvertible & View>: ObservableObject {
     
     public init() {}
     
@@ -18,30 +17,34 @@ public final class Router {
     }
         
     weak var parentRouter: Router?
-    var navigationPath: [AnyRoutable] = []
-    var presentingSheet: AnyRoutable? = nil
-    var presentingFullScreen: AnyRoutable? = nil
-    var currentPath: [AnyRoutable] { navigationPath + [presentingSheet, presentingFullScreen].compactMap { $0 } }
-    
-    // MARK: - Animation Helpers
-    
-    private func execute(_ animated: Bool, _ navigation: @escaping () -> Void) {
-        if animated {
-            navigation()
-        } else {
-            var transaction = Transaction()
-            transaction.disablesAnimations = true
-            withTransaction(transaction) {
-                navigation()
-            }
+    weak var childRouter: Router? {
+        didSet {
+            notifyHierarchyChanged()
         }
     }
     
-    // MARK: - Navigation Methods
+    @Published var navigationPath: [Destination] = [] {
+        didSet { notifyHierarchyChanged() }
+    }
     
-    public func push<Destination: Routable>(destination: Destination, animated: Bool = true) {
+    @Published var presentingSheet: Destination? = nil {
+        didSet { notifyHierarchyChanged() }
+    }
+    
+    @Published var presentingFullScreen: Destination? = nil {
+        didSet { notifyHierarchyChanged() }
+    }
+        
+    /// Returns the currently active router in the navigation hierarchy
+    /// This is the primary way to access the router that's currently being used
+    public var activeRouter: Router {
+        childRouter ?? self
+    }
+            
+    // MARK: - Navigation Methods
+    public func push(destination: Destination, animated: Bool = true) {
         execute(animated) { [weak self] in
-            self?.navigationPath.append(AnyRoutable(destination))
+            self?.navigationPath.append(destination)
         }
     }
     
@@ -51,8 +54,8 @@ public final class Router {
         }
     }
     
-    public func pop<Destination: Routable>(to destination: Destination, animated: Bool = true) {
-        if let indexOfDestination = navigationPath.lastIndex(where: { $0 == AnyRoutable(destination) }) {
+    public func pop(to destination: Destination, animated: Bool = true) {
+        if let indexOfDestination = navigationPath.lastIndex(where: { $0 == destination }) {
             let removeStart = indexOfDestination + 1
             if removeStart < navigationPath.count {
                 execute(animated) { [weak self] in
@@ -77,13 +80,13 @@ public final class Router {
         }
     }
     
-    public func present<Destination: Routable>(destination: Destination, presentationType: PresentationType, animated: Bool = true) {
+    public func present(destination: Destination, presentationType: PresentationType, animated: Bool = true) {
         execute(animated) { [weak self] in
             switch presentationType {
             case .sheet:
-                self?.presentingSheet = AnyRoutable(destination)
+                self?.presentingSheet = destination
             case .fullScreenCover:
-                self?.presentingFullScreen = AnyRoutable(destination)
+                self?.presentingFullScreen = destination
             }
         }
     }
@@ -92,25 +95,27 @@ public final class Router {
         execute(animated) { [weak self] in
             if self?.parentRouter?.presentingSheet != nil {
                 self?.parentRouter?.presentingSheet = nil
+                self?.parentRouter?.childRouter = nil
             } else if self?.parentRouter?.presentingFullScreen != nil {
                 self?.parentRouter?.presentingFullScreen = nil
+                self?.parentRouter?.childRouter = nil
             }
         }
     }
     
-    public func insert<Destination: Routable>(destination: Destination, at index: Int, animated: Bool = true) {
+    public func insert(destination: Destination, at index: Int, animated: Bool = true) {
         var tempPath = navigationPath
-        tempPath.insert(AnyRoutable(destination), at: index)
+        tempPath.insert(destination, at: index)
         
         execute(animated) { [weak self] in
             self?.navigationPath = tempPath
         }
     }
     
-    public func remove<Destination: Routable>(destinations: Destination.Type..., animated: Bool = true) {
+    public func remove(destinations: Destination..., animated: Bool = true) {
         var tempPath = navigationPath
-        destinations.forEach { routable in
-            if let index = tempPath.lastIndex(where: { $0.id == routable.routeId }) {
+        destinations.forEach { destination in
+            if let index = tempPath.lastIndex(where: { $0.description == destination.description }) {
                 tempPath.remove(at: index)
             }
         }
@@ -120,11 +125,24 @@ public final class Router {
         }
     }
     
-    public func applyPath<Destination: Routable>(_ destinations: [Destination], animated: Bool = true) {
-        let newPath = destinations.map { AnyRoutable($0) }
+    public func applyPath(_ destinations: [Destination], animated: Bool = true) {
+        let newPath = destinations.map { $0 }
         
         execute(animated) { [weak self] in
             self?.navigationPath = newPath
+        }
+    }
+    
+    // MARK: - Helpers
+    private func execute(_ animated: Bool, _ navigation: @escaping () -> Void) {
+        if animated {
+            navigation()
+        } else {
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction) {
+                navigation()
+            }
         }
     }
 }

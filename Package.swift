@@ -7,7 +7,11 @@ import CompilerPluginSupport
 let package = Package(
     name: "Navigation",
     platforms: [
-        .macOS(.v10_15), .iOS(.v17), .tvOS(.v13), .watchOS(.v6), .macCatalyst(.v13)
+        .macOS(.v10_15),
+        .iOS(.v17),
+        .tvOS(.v13),
+        .watchOS(.v6),
+        .macCatalyst(.v13)
     ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
@@ -15,29 +19,48 @@ let package = Package(
             name: "Navigation",
             targets: ["Navigation"]
         ),
+        .plugin(
+            name: "NavigationPlugin",
+            targets: ["NavigationPlugin"]
+        )
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-syntax.git", from: "600.0.0-latest"),
+        .package(
+            url: "https://github.com/apple/swift-syntax.git",
+            from: "600.0.0-latest"
+        ),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "Navigation",
-            dependencies: [
-                "NavigationMacro"
-            ]
+            dependencies: ["NavigationMacro"]
         ),
         .macro(
             name: "NavigationMacro",
             dependencies: [
-                .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
-                .product(name: "SwiftCompilerPlugin", package: "swift-syntax")
+                .product(
+                    name: "SwiftSyntaxMacros",
+                    package: "swift-syntax"
+                ),
+                .product(
+                    name: "SwiftCompilerPlugin",
+                    package: "swift-syntax"
+                )
             ]
+        ),
+        .executableTarget(
+            name: "NavigationCodeGenerator"
+        ),
+        .plugin(
+            name: "NavigationPlugin",
+            capability: .buildTool(),
+            dependencies: ["NavigationCodeGenerator"]
         ),
         .testTarget(
             name: "NavigationTests",
             dependencies: ["Navigation"]
-        ),
+        )
     ]
 )
