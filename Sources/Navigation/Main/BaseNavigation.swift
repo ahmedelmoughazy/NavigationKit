@@ -73,7 +73,9 @@ public struct BaseNavigation<Content: View, Destination: Hashable & Identifiable
                 }
         }
         .environmentObject(router.activeRouter)
-        .sheet(item: $router.presentingSheet) { destination in
+        .sheet(item: $router.presentingSheet) {
+            router.removeChildRouter()
+        } content: { destination in
             createSheetContent(for: destination)
         }
         .fullScreenCover(item: $router.presentingFullScreen) { destination in

@@ -320,6 +320,25 @@ internal extension Router {
         childRouter.parentRouter = self
         return childRouter
     }
+    
+    /// Removes the current child router from the hierarchy.
+    ///
+    /// This method is called when sheet modal presentation is dismissed to
+    /// clean up the router hierarchy and break the parent-child relationship.
+    /// It's typically invoked automatically by BaseNavigation when sheet presentations
+    /// is dismissed, but it was mainly called for dismissal by the user.
+    ///
+    /// ## Usage Context
+    /// This method is primarily used internally by the navigation system:
+    /// - Called when sheets are dismissed via the `.sheet()` modifier's `onDismiss` closure
+    /// - Ensures proper cleanup of navigation hierarchy, when dismissed by user.
+    ///
+    /// - Note: This method only removes the direct child router, not nested children
+    /// - SeeAlso: `createChildRouter()` for child router creation
+    /// - SeeAlso: `BaseNavigation` for automatic cleanup integration
+    func removeChildRouter() {
+        self.childRouter = nil
+    }
 }
 
 // MARK: - Private Methods
