@@ -25,7 +25,7 @@ struct NavigationCodeGenerator {
     /// Main execution function for the code generator.
     ///
     /// Processes command line arguments, scans for routable views, and generates
-    /// the navigation code file.
+    /// the navigation code files for each unique route name.
     ///
     /// - Throws: Various errors related to file operations or invalid arguments
     static func main() throws {
@@ -46,9 +46,46 @@ struct NavigationCodeGenerator {
         
         if views.isEmpty { return }
         
-        let generatedCode = generateNavigationCode(from: views)
-        try generatedCode.write(toFile: outputPath, atomically: true, encoding: .utf8)
-        print(LogConstants.generatedMessage + outputPath)
+        // Determine if outputPath is a directory or file
+        let outputFilePath: String
+        if outputPath.hasSuffix(".swift") {
+            // Legacy mode: single file output
+            outputFilePath = outputPath
+            print("🔧 DEBUG: Single file mode - outputFilePath: \(outputFilePath)")
+        } else {
+            // New mode: directory output - create a single file with all routes
+            outputFilePath = URL(fileURLWithPath: outputPath).appendingPathComponent("NavigationRoutes.swift").path
+            print("🔧 DEBUG: Directory mode - outputFilePath: \(outputFilePath)")
+        }
+        
+        // Group views by route names
+        let routeGroups = groupViewsByRoute(views)
+        
+        // Generate a single file containing all route enums
+        let generatedCode = generateAllNavigationCode(from: routeGroups)
+        try generatedCode.write(toFile: outputFilePath, atomically: true, encoding: String.Encoding.utf8)
+        print(LogConstants.generatedMessage + outputFilePath)
+    }
+    
+    /// Groups views by their route names, handling multi-route views.
+    ///
+    /// Views that belong to multiple routes will appear in multiple groups.
+    ///
+    /// - Parameter viewsWithRoutes: Array of (ViewInfo, [String]) tuples to group
+    /// - Returns: Dictionary mapping route names to arrays of views
+    private static func groupViewsByRoute(_ viewsWithRoutes: [(ViewInfo, [String])]) -> [String: [ViewInfo]] {
+        var routeGroups: [String: [ViewInfo]] = [:]
+        
+        for (view, routeNames) in viewsWithRoutes {
+            for routeName in routeNames {
+                if routeGroups[routeName] == nil {
+                    routeGroups[routeName] = []
+                }
+                routeGroups[routeName]?.append(view)
+            }
+        }
+        
+        return routeGroups
     }
 }
 
@@ -62,11 +99,11 @@ extension NavigationCodeGenerator {
     /// Swift files found.
     ///
     /// - Parameter sourceRoot: The root directory path to start scanning from
-    /// - Returns: Array of ViewInfo objects representing all discovered routable views
+    /// - Returns: Array of (ViewInfo, [String]) tuples representing all discovered routable views with their route names
     /// - Throws: FileManager errors if directory access fails
-    static func scanForNavigableViews(in sourceRoot: String) throws -> [ViewInfo] {
+    static func scanForNavigableViews(in sourceRoot: String) throws -> [(ViewInfo, [String])] {
         let fileManager = FileManager.default
-        var views: [ViewInfo] = []
+        var views: [(ViewInfo, [String])] = []
         
         /// Recursively scans a directory for Swift files
         func scanDirectory(_ path: String) throws {
@@ -102,35 +139,109 @@ extension NavigationCodeGenerator {
     /// Extracts @Routable views from Swift source code content.
     ///
     /// Parses the source code line by line to find views decorated with the
-    /// @Routable macro and extracts their structural information.
+    /// @Routable macro and extracts their structural information including
+    /// route names for multi-route support.
     ///
     /// - Parameter content: The Swift source code content to parse
-    /// - Returns: Array of ViewInfo objects for all routable views found
-    static func extractNavigableViews(from content: String) -> [ViewInfo] {
+    /// - Returns: Array of (ViewInfo, [String]) tuples with views and their route names
+    static func extractNavigableViews(from content: String) -> [(ViewInfo, [String])] {
         let lines = content.components(separatedBy: .newlines)
-        var views: [ViewInfo] = []
-        var isRoutable = false
+        var views: [(ViewInfo, [String])] = []
+        var accumulatedRouteNames: [String] = []
+        var foundRoutableWithoutArgs = false
         
         for (index, line) in lines.enumerated() {
             let trimmed = line.trimmingCharacters(in: .whitespaces)
             
             // Check for @Routable macro
             if trimmed == MacroConstants.routableMacro {
-                isRoutable = true
+                // @Routable without arguments - should go to NavigationRoute
+                foundRoutableWithoutArgs = true
+                continue
+            } else if let routeNames = extractRouteNames(from: trimmed) {
+                // @Routable with arguments
+                accumulatedRouteNames.append(contentsOf: routeNames)
                 continue
             }
             
-            // Check for view declaration following @Routable
-            if isRoutable && isViewDeclaration(trimmed) {
+            // Check for view declaration following @Routable(s)
+            if (foundRoutableWithoutArgs || !accumulatedRouteNames.isEmpty) && isViewDeclaration(trimmed) {
                 if let viewName = extractViewName(from: trimmed) {
                     let parameters = extractParameters(for: viewName, in: lines, startingFrom: index)
-                    views.append(ViewInfo(name: viewName, parameters: parameters))
+                    let viewInfo = ViewInfo(name: viewName, parameters: parameters)
+                    
+                    // Determine route names
+                    let finalRouteNames: [String]
+                    if foundRoutableWithoutArgs && accumulatedRouteNames.isEmpty {
+                        finalRouteNames = ["NavigationRoute"]
+                    } else if !accumulatedRouteNames.isEmpty {
+                        finalRouteNames = accumulatedRouteNames
+                    } else {
+                        finalRouteNames = ["NavigationRoute"]
+                    }
+                    
+                    views.append((viewInfo, finalRouteNames))
                 }
-                isRoutable = false
+                
+                // Reset state
+                foundRoutableWithoutArgs = false
+                accumulatedRouteNames.removeAll()
+            }
+            
+            // Reset accumulated state if we encounter a non-empty line that's not @Routable or a view declaration
+            if !trimmed.isEmpty && !trimmed.hasPrefix("@Routable") && !isViewDeclaration(trimmed) {
+                foundRoutableWithoutArgs = false
+                accumulatedRouteNames.removeAll()
             }
         }
         
         return views
+    }
+    
+    /// Extracts route names from a @Routable macro annotation.
+    ///
+    /// Supports various formats:
+    /// - @Routable -> ["NavigationRoute"] (default)
+    /// - @Routable("CustomRoute") -> ["CustomRoute"]
+    /// - @Routable("Route1", "Route2") -> ["Route1", "Route2"]
+    ///
+    /// - Parameter line: The trimmed source code line to parse
+    /// - Returns: Array of route names if found, nil otherwise
+    private static func extractRouteNames(from line: String) -> [String]? {
+        // Simple @Routable without parameters
+        if line == MacroConstants.routableMacro {
+            return ["NavigationRoute"]
+        }
+        
+        // @Routable with parameters: @Routable("Route1", "Route2", ...)
+        let pattern = #"@Routable\s*\(\s*"([^"]+)""#
+        if let regex = try? NSRegularExpression(pattern: pattern) {
+            let matches = regex.matches(in: line, range: NSRange(location: 0, length: line.utf16.count))
+            if !matches.isEmpty {
+                var routeNames: [String] = []
+                for match in matches {
+                    if let range = Range(match.range(at: 1), in: line) {
+                        routeNames.append(String(line[range]))
+                    }
+                }
+                
+                // If we found at least one match, also look for additional comma-separated strings
+                let allStringsPattern = #""([^"]+)""#
+                if let allStringsRegex = try? NSRegularExpression(pattern: allStringsPattern) {
+                    let allMatches = allStringsRegex.matches(in: line, range: NSRange(location: 0, length: line.utf16.count))
+                    var allRouteNames: [String] = []
+                    for match in allMatches {
+                        if let range = Range(match.range(at: 1), in: line) {
+                            allRouteNames.append(String(line[range]))
+                        }
+                    }
+                    return allRouteNames.isEmpty ? routeNames : allRouteNames
+                }
+                return routeNames
+            }
+        }
+        
+        return nil
     }
     
     /// Checks if a line contains a SwiftUI view declaration.
@@ -321,16 +432,33 @@ extension NavigationCodeGenerator {
 // MARK: - Code Generation
 extension NavigationCodeGenerator {
     
-    /// Generates the complete NavigationRoute enum source code.
+    /// Generates a single file containing all navigation route enums.
     ///
-    /// Creates a comprehensive enum with all discovered routable views,
+    /// Creates a comprehensive Swift file with separate enums for each route group,
     /// including conformances to necessary protocols and implementations
     /// for view instantiation and string representation.
     ///
-    /// - Parameter views: Array of ViewInfo objects to generate code for
-    /// - Returns: Complete Swift source code for the NavigationRoute enum
-    static func generateNavigationCode(from views: [ViewInfo]) -> String {
-        var output = CodeTemplates.fileHeader(date: Date())
+    /// - Parameter routeGroups: Dictionary mapping route names to arrays of views
+    /// - Returns: Complete Swift source code containing all navigation route enums
+    static func generateAllNavigationCode(from routeGroups: [String: [ViewInfo]]) -> String {
+        var output = CodeTemplates.multiRouteFileHeader(date: Date())
+        
+        for (routeName, views) in routeGroups.sorted(by: { $0.key < $1.key }) {
+            output += generateSingleRouteEnum(from: views, routeName: routeName)
+            output += "\n"
+        }
+        
+        return output
+    }
+    
+    /// Generates a single route enum within a multi-route file.
+    ///
+    /// - Parameters:
+    ///   - views: Array of ViewInfo objects to generate code for
+    ///   - routeName: The name of the route enum to generate
+    /// - Returns: Swift source code for a single route enum
+    static func generateSingleRouteEnum(from views: [ViewInfo], routeName: String) -> String {
+        var output = "public enum \(routeName): Hashable, Identifiable, CustomStringConvertible, View {\n"
         
         // Add enum cases
         for view in views {
@@ -352,7 +480,7 @@ extension NavigationCodeGenerator {
             output += "        \(view.switchCase)\n"
         }
         
-        output += CodeTemplates.fileFooter
+        output += CodeTemplates.enumFooter
         
         return output
     }
@@ -429,14 +557,24 @@ private enum RegexPatterns {
 
 /// Code generation templates
 private enum CodeTemplates {
-    static func fileHeader(date: Date) -> String {
+    static func fileHeader(date: Date, routeName: String) -> String {
         return """
 // Generated by Navigation package - do not edit manually
 // Generated at: \(date)
 import SwiftUI
 import Navigation
 
-public enum NavigationRoute: Hashable, Identifiable, CustomStringConvertible, View {
+public enum \(routeName): Hashable, Identifiable, CustomStringConvertible, View {
+
+"""
+    }
+    
+    static func multiRouteFileHeader(date: Date) -> String {
+        return """
+// Generated by Navigation package - do not edit manually
+// Generated at: \(date)
+import SwiftUI
+import Navigation
 
 """
     }
@@ -467,6 +605,13 @@ public enum NavigationRoute: Hashable, Identifiable, CustomStringConvertible, Vi
 """
     
     static let fileFooter = """
+        }
+    }
+}
+
+"""
+    
+    static let enumFooter = """
         }
     }
 }
