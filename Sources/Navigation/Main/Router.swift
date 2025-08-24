@@ -1,60 +1,190 @@
 //
 //  Router.swift
-//  NavigationPOC
+//  Navigation
 //
 //  Created by Ahmed Elmoughazy on 29.02.24.
 //
 
 import SwiftUI
+import Combine
 
+// MARK: - Router
+
+/// A hierarchical navigation state manager that provides programmatic navigation capabilities.
+///
+/// `Router` manages navigation state for a specific destination type and supports both
+/// stack-based navigation (push/pop) and modal presentations (sheets and full-screen covers).
+/// It maintains a hierarchy of child routers for modal presentations and provides reactive
+/// updates through Combine publishers.
+///
+/// ## Features
+/// - **Stack Navigation**: Push and pop destinations in a navigation stack
+/// - **Modal Presentations**: Present destinations as sheets or full-screen covers
+/// - **Hierarchical Management**: Automatic child router creation for modal presentations
+/// - **Reactive Updates**: Published properties and Combine publishers for state changes
+/// - **Animation Control**: Optional animation control for all navigation actions
+///
+/// ## Basic Usage
+/// ```swift
+/// let router = Router<NavigationRoute>()
+///
+/// // Stack navigation
+/// router.push(destination: .home)
+/// router.pop()
+///
+/// // Modal presentation
+/// router.present(destination: .settings, as: .sheet)
+/// router.dismiss()
+/// ```
+///
+/// ## Hierarchy
+/// Routers form a hierarchy where:
+/// - Root router manages the main navigation stack
+/// - Child routers are created automatically for modal presentations
+/// - Navigation state changes propagate through the hierarchy
+///
+/// - Note: Router requires destination types that conform to Hashable, Identifiable, CustomStringConvertible, and View
+/// - SeeAlso: `BaseNavigation` for the SwiftUI integration
+/// - SeeAlso: `PresentationType` for modal presentation options
 public final class Router<Destination: Hashable & Identifiable & CustomStringConvertible & View>: ObservableObject {
     
+    // MARK: - Initialization
+    
+    /// Creates a new router instance.
     public init() {}
     
-    public enum PresentationType {
-        case sheet
-        case fullScreenCover
+    // MARK: - Properties
+    
+    /// The current navigation path as an array of destinations.
+    @Published internal var navigationPath: [Destination] = [] {
+        didSet { notifyHierarchyChanged() }
     }
-        
-    weak var parentRouter: Router?
-    weak var childRouter: Router? {
-        didSet {
-            notifyHierarchyChanged()
+    
+    /// The currently presented sheet destination, if any.
+    @Published internal var presentingSheet: Destination? = nil {
+        didSet { notifyHierarchyChanged() }
+    }
+    
+    /// The currently presented full-screen cover destination, if any.
+    @Published internal var presentingFullScreen: Destination? = nil {
+        didSet { notifyHierarchyChanged() }
+    }
+    
+    /// The parent router in the hierarchy, if this is a child router.
+    internal weak var parentRouter: Router? {
+        didSet { notifyHierarchyChanged() }
+    }
+    
+    /// The child router created for modal presentations, if any.
+    internal weak var childRouter: Router? {
+        didSet { notifyHierarchyChanged() }
+    }
+    
+    /// Returns the root router in the hierarchy.
+    ///
+    /// Traverses up the parent chain to find the topmost router.
+    internal var rootRouter: Router {
+        var node: Router = self
+        while let parent = node.parentRouter {
+            node = parent
         }
+        return node
     }
     
-    @Published var navigationPath: [Destination] = [] {
-        didSet { notifyHierarchyChanged() }
+    // MARK: - Private Properties
+
+    /// Returns the root notification subject for hierarchy-wide change notifications.
+    private var rootNotifier: PassthroughSubject<Void, Never> {
+        parentRouter?.rootNotifier ?? rootSubject
     }
     
-    @Published var presentingSheet: Destination? = nil {
-        didSet { notifyHierarchyChanged() }
-    }
+    /// The root-level change notification subject.
+    private var rootSubject = PassthroughSubject<Void, Never>()
+}
+
+// MARK: - Route Tracking
+public extension Router {
     
-    @Published var presentingFullScreen: Destination? = nil {
-        didSet { notifyHierarchyChanged() }
-    }
-        
-    /// Returns the currently active router in the navigation hierarchy
-    /// This is the primary way to access the router that's currently being used
-    public var activeRouter: Router {
+    /// Returns the currently active router in the hierarchy.
+    ///
+    /// This is either the child router (if one exists) or this router itself.
+    /// The active router is the one that should handle new navigation actions.
+    var activeRouter: Router {
         childRouter ?? self
     }
-            
-    // MARK: - Navigation Methods
-    public func push(destination: Destination, animated: Bool = true) {
+    
+    /// Returns the current route as an array of destination descriptions.
+    ///
+    /// Traverses the entire router hierarchy and collects all destinations
+    /// in the navigation paths, sheets, and full-screen presentations.
+    ///
+    /// - Returns: An array of strings representing the current route
+    var currentRoute: [String] {
+        var ids: [String] = []
+        var node: Router? = rootRouter
+        while let router = node {
+            ids.append(contentsOf: router.navigationPath.map { $0.description })
+            if let sheet = router.presentingSheet {
+                ids.append(sheet.description)
+            }
+            if let fullScreen = router.presentingFullScreen {
+                ids.append(fullScreen.description)
+            }
+            node = router.childRouter
+        }
+        return ids
+    }
+    
+    /// A publisher that emits the current route whenever the navigation state changes.
+    ///
+    /// This publisher provides reactive updates to the current route, allowing
+    /// views and other components to respond to navigation changes.
+    ///
+    /// - Returns: A publisher that emits route arrays on navigation changes
+    var currentRoutePublisher: AnyPublisher<[String], Never> {
+        let currentRoute = self.currentRoute
+        return rootNotifier
+            .map { [weak self] in
+                guard let self else { return [] }
+                return self.currentRoute
+            }
+            .prepend(currentRoute)
+            .removeDuplicates()
+            .eraseToAnyPublisher()
+    }
+}
+
+// MARK: - Stack Navigation
+public extension Router {
+    
+    /// Pushes a destination onto the navigation stack.
+    ///
+    /// - Parameters:
+    ///   - destination: The destination to push
+    ///   - animated: Whether to animate the transition (default: true)
+    func push(destination: Destination, animated: Bool = true) {
         execute(animated) { [weak self] in
             self?.navigationPath.append(destination)
         }
     }
     
-    public func pop(animated: Bool = true) {
+    /// Pops the most recent destination from the navigation stack.
+    ///
+    /// - Parameter animated: Whether to animate the transition (default: true)
+    func pop(animated: Bool = true) {
         execute(animated) { [weak self] in
             self?.navigationPath.removeLast()
         }
     }
     
-    public func pop(to destination: Destination, animated: Bool = true) {
+    /// Pops the navigation stack to a specific destination.
+    ///
+    /// Removes all destinations after the specified destination from the stack.
+    ///
+    /// - Parameters:
+    ///   - destination: The destination to pop back to
+    ///   - animated: Whether to animate the transition (default: true)
+    func pop(to destination: Destination, animated: Bool = true) {
         if let indexOfDestination = navigationPath.lastIndex(where: { $0 == destination }) {
             let removeStart = indexOfDestination + 1
             if removeStart < navigationPath.count {
@@ -66,21 +196,39 @@ public final class Router<Destination: Hashable & Identifiable & CustomStringCon
         }
     }
     
-    public func popToPresentation(animated: Bool = true) {
+    /// Pops all destinations from the current navigation stack.
+    ///
+    /// - Parameter animated: Whether to animate the transition (default: true)
+    func popToPresentation(animated: Bool = true) {
         execute(animated) { [weak self] in
             self?.navigationPath.removeAll()
         }
     }
     
-    public func popAll(animated: Bool = true) {
+    /// Pops all destinations and dismisses all modal presentations.
+    ///
+    /// This method clears the entire navigation hierarchy, returning to the root state.
+    ///
+    /// - Parameter animated: Whether to animate the transition (default: true)
+    func popAll(animated: Bool = true) {
         execute(animated) { [weak self] in
             self?.navigationPath.removeAll()
             self?.parentRouter?.popAll(animated: animated)
             self?.dismiss(animated: animated)
         }
     }
+}
+
+// MARK: - Modal Presentation
+public extension Router {
     
-    public func present(destination: Destination, presentationType: PresentationType, animated: Bool = true) {
+    /// Presents a destination modally.
+    ///
+    /// - Parameters:
+    ///   - destination: The destination to present
+    ///   - presentationType: The type of modal presentation
+    ///   - animated: Whether to animate the transition (default: true)
+    func present(destination: Destination, as presentationType: PresentationType, animated: Bool = true) {
         execute(animated) { [weak self] in
             switch presentationType {
             case .sheet:
@@ -91,7 +239,10 @@ public final class Router<Destination: Hashable & Identifiable & CustomStringCon
         }
     }
     
-    public func dismiss(animated: Bool = true) {
+    /// Dismisses the current modal presentation.
+    ///
+    /// - Parameter animated: Whether to animate the transition (default: true)
+    func dismiss(animated: Bool = true) {
         execute(animated) { [weak self] in
             if self?.parentRouter?.presentingSheet != nil {
                 self?.parentRouter?.presentingSheet = nil
@@ -102,8 +253,18 @@ public final class Router<Destination: Hashable & Identifiable & CustomStringCon
             }
         }
     }
+}
+
+// MARK: - Advanced Navigation
+public extension Router {
     
-    public func insert(destination: Destination, at index: Int, animated: Bool = true) {
+    /// Inserts a destination at a specific index in the navigation stack.
+    ///
+    /// - Parameters:
+    ///   - destination: The destination to insert
+    ///   - index: The index at which to insert the destination
+    ///   - animated: Whether to animate the transition (default: true)
+    func insert(destination: Destination, at index: Int, animated: Bool = true) {
         var tempPath = navigationPath
         tempPath.insert(destination, at: index)
         
@@ -112,7 +273,12 @@ public final class Router<Destination: Hashable & Identifiable & CustomStringCon
         }
     }
     
-    public func remove(destinations: Destination..., animated: Bool = true) {
+    /// Removes specific destinations from the navigation stack.
+    ///
+    /// - Parameters:
+    ///   - destinations: The destinations to remove
+    ///   - animated: Whether to animate the transition (default: true)
+    func remove(destinations: Destination..., animated: Bool = true) {
         var tempPath = navigationPath
         destinations.forEach { destination in
             if let index = tempPath.lastIndex(where: { $0.description == destination.description }) {
@@ -125,16 +291,46 @@ public final class Router<Destination: Hashable & Identifiable & CustomStringCon
         }
     }
     
-    public func applyPath(_ destinations: [Destination], animated: Bool = true) {
+    /// Replaces the current navigation path with a new path.
+    ///
+    /// - Parameters:
+    ///   - destinations: The new navigation path
+    ///   - animated: Whether to animate the transition (default: true)
+    func applyPath(_ destinations: [Destination], animated: Bool = true) {
         let newPath = destinations.map { $0 }
         
         execute(animated) { [weak self] in
             self?.navigationPath = newPath
         }
     }
+}
+
+// MARK: - Router Management
+internal extension Router {
     
-    // MARK: - Helpers
-    private func execute(_ animated: Bool, _ navigation: @escaping () -> Void) {
+    /// Creates a child router for modal presentations.
+    ///
+    /// Child routers are automatically created when presenting modals and
+    /// maintain a parent-child relationship for hierarchy management.
+    ///
+    /// - Returns: A new child router instance
+    func createChildRouter() -> Router {
+        let childRouter = Router<Destination>()
+        self.childRouter = childRouter
+        childRouter.parentRouter = self
+        return childRouter
+    }
+}
+
+// MARK: - Private Methods
+private extension Router {
+    
+    /// Executes a navigation action with optional animation control.
+    ///
+    /// - Parameters:
+    ///   - animated: Whether to animate the navigation action
+    ///   - navigation: The navigation action to execute
+    func execute(_ animated: Bool, _ navigation: @escaping () -> Void) {
         if animated {
             navigation()
         } else {
@@ -144,5 +340,13 @@ public final class Router<Destination: Hashable & Identifiable & CustomStringCon
                 navigation()
             }
         }
+    }
+    
+    /// Notifies the hierarchy that navigation state has changed.
+    ///
+    /// This method triggers updates to all subscribers listening for
+    /// navigation changes throughout the router hierarchy.
+    func notifyHierarchyChanged() {
+        rootNotifier.send(())
     }
 }
