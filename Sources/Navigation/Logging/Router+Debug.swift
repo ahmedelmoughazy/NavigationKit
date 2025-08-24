@@ -2,7 +2,8 @@
 //  Router+Debug.swift
 //  Navigation
 //
-//  Created by Ahmed Elmoughazy on 19.08.25.
+//  Created by Ahmed Elmoughazy on 19.08.25
+//  Copyright © 2025 Ahmed Elmoghazy. All rights reserved.
 //
 
 #if DEBUG

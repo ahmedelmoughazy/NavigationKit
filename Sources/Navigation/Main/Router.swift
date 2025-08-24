@@ -2,7 +2,8 @@
 //  Router.swift
 //  Navigation
 //
-//  Created by Ahmed Elmoughazy on 29.02.24.
+//  Created by Ahmed Elmoughazy on 29.02.24
+//  Copyright © 2024 Ahmed Elmoghazy. All rights reserved.
 //
 
 import SwiftUI

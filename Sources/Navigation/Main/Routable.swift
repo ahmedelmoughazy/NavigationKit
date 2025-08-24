@@ -2,7 +2,8 @@
 //  Routable.swift
 //  Navigation
 //
-//  Created by Ahmed Elmoughazy on 08.08.25.
+//  Created by Ahmed Elmoughazy on 08.08.25
+//  Copyright © 2025 Ahmed Elmoghazy. All rights reserved.
 //
 
 import SwiftUI
