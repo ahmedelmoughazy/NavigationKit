@@ -21,7 +21,7 @@ let package = Package(
         ),
         .plugin(
             name: "GenerateRoutes",
-            targets: ["GenerateRoutes"]
+            targets: ["Generate routes"]
         )
     ],
     dependencies: [
@@ -54,7 +54,7 @@ let package = Package(
             name: "NavigationCodeGenerator"
         ),
         .plugin(
-            name: "GenerateRoutes",
+            name: "Generate routes",
             capability: .command(
                 intent: .custom(
                     verb: "generate-navigation",
@@ -64,7 +64,8 @@ let package = Package(
                     .writeToPackageDirectory(reason: "Create file for navigation route")
                 ]
             ),
-            dependencies: ["NavigationCodeGenerator"]
+            dependencies: ["NavigationCodeGenerator"],
+            path: "Plugins/GenerateRoutes"
         ),
         .testTarget(
             name: "NavigationTests",
