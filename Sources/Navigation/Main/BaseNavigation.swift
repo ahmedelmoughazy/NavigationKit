@@ -79,7 +79,9 @@ public struct BaseNavigation<Content: View, Destination: Hashable & Identifiable
         } content: { destination in
             createSheetContent(for: destination)
         }
-        .fullScreenCover(item: $router.presentingFullScreen) { destination in
+        .fullScreenCover(item: $router.presentingFullScreen) {
+            router.removeChildRouter()
+        } content: { destination in
             createFullScreenContent(for: destination)
         }
         .onChange(of: router.navigationPath) { _, _ in
