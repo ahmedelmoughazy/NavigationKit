@@ -1,5 +1,5 @@
 //
-//  NavigationPlugin.swift
+//  Plugin.swift
 //  Navigation
 //
 //  Created by Ahmed Elmoughazy on 17.08.25
@@ -18,7 +18,7 @@ import Foundation
 /// The plugin supports both Swift Package Manager projects and Xcode projects through
 /// separate protocol conformances.
 @main
-struct NavigationPlugin: CommandPlugin {
+struct GenerateRoutesPlugin: CommandPlugin {
     
     /// Performs the command for Swift Package Manager targets.
     ///
@@ -55,7 +55,7 @@ struct NavigationPlugin: CommandPlugin {
             
             let outputFile = outputDirectory.appending(path: Constants.generatedFile)
             
-            Diagnostics.remark("[NavigationPlugin] Will generate \(Constants.generatedFile) at: \(outputFile.path())")
+            Diagnostics.remark("[GenerateRoutes] Will generate \(Constants.generatedFile) at: \(outputFile.path())")
             
             let process = Process()
             process.executableURL = navigationGenerator.url
@@ -75,10 +75,10 @@ import XcodeProjectPlugin
 
 /// Extension to support Xcode projects.
 ///
-/// This extension allows the NavigationPlugin to work with Xcode projects that include
+/// This extension allows the GenerateRoutesPlugin to work with Xcode projects that include
 /// Swift packages. The plugin will run during Xcode builds and generate navigation routes
 /// for any targets that depend on this package.
-extension NavigationPlugin: XcodeCommandPlugin {
+extension GenerateRoutesPlugin: XcodeCommandPlugin {
     
     /// Performs the command for Xcode project targets.
     ///
@@ -110,7 +110,7 @@ extension NavigationPlugin: XcodeCommandPlugin {
             
             let outputFile = outputDirectory.appending(path: Constants.generatedFile)
             
-            Diagnostics.remark("[NavigationPlugin] Will generate \(Constants.generatedFile) at: \(outputFile.path())")
+            Diagnostics.remark("[GenerateRoutes] Will generate \(Constants.generatedFile) at: \(outputFile.path())")
             
             let process = Process()
             process.executableURL = navigationGenerator.url

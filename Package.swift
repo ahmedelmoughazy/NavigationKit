@@ -20,8 +20,8 @@ let package = Package(
             targets: ["Navigation"]
         ),
         .plugin(
-            name: "NavigationPlugin",
-            targets: ["NavigationPlugin"]
+            name: "GenerateRoutes",
+            targets: ["GenerateRoutes"]
         )
     ],
     dependencies: [
@@ -54,7 +54,7 @@ let package = Package(
             name: "NavigationCodeGenerator"
         ),
         .plugin(
-            name: "NavigationPlugin",
+            name: "GenerateRoutes",
             capability: .command(
                 intent: .custom(
                     verb: "generate-navigation",
