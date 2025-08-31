@@ -55,7 +55,15 @@ let package = Package(
         ),
         .plugin(
             name: "NavigationPlugin",
-            capability: .buildTool(),
+            capability: .command(
+                intent: .custom(
+                    verb: "generate-navigation",
+                    description: "Generate navigation routes from @Routable views"
+                ),
+                permissions: [
+                    .writeToPackageDirectory(reason: "Create file for navigation route")
+                ]
+            ),
             dependencies: ["NavigationCodeGenerator"]
         ),
         .testTarget(

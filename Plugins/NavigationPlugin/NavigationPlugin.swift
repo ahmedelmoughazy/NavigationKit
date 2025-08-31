@@ -1,4 +1,3 @@
-
 //
 //  NavigationPlugin.swift
 //  Navigation
@@ -10,7 +9,7 @@
 import PackagePlugin
 import Foundation
 
-/// A Swift Package Manager build tool plugin that generates navigation routes from source files.
+/// A Swift Package Manager command plugin that generates navigation routes from source files.
 ///
 /// This plugin scans Swift source files for views marked with the `@Routable` macro and
 /// automatically generates a `NavigationRoute` enum containing all the routable views.
@@ -19,24 +18,19 @@ import Foundation
 /// The plugin supports both Swift Package Manager projects and Xcode projects through
 /// separate protocol conformances.
 @main
-struct NavigationPlugin: BuildToolPlugin {
+struct NavigationPlugin: CommandPlugin {
     
-    /// Creates build commands for Swift Package Manager targets.
+    /// Performs the command for Swift Package Manager targets.
     ///
-    /// This method is called by the Swift Package Manager during the build process.
+    /// This method is called by the Swift Package Manager when the command is executed.
     /// It sets up the code generation command that will scan the target's source files
     /// and generate the navigation routes.
     ///
     /// - Parameters:
     ///   - context: The plugin context providing access to tools and directories
-    ///   - target: The target being built
-    /// - Returns: An array of build commands to execute
-    /// - Throws: `PluginError` if the target doesn't have a source module, tools are missing, or directory creation fails
-    func createBuildCommands(context: PluginContext, target: Target) async throws -> [Command] {
-        guard let sourceModule = target.sourceModule else {
-            throw PluginError.missingSourceModule
-        }
-        
+    ///   - arguments: Command line arguments passed to the plugin
+    /// - Throws: `PluginError` if tools are missing or directory creation fails
+    func performCommand(context: PluginContext, arguments: [String]) async throws {
         let navigationGenerator: PackagePlugin.PluginContext.Tool
         do {
             navigationGenerator = try context.tool(named: Constants.generatorToolName)
@@ -44,32 +38,35 @@ struct NavigationPlugin: BuildToolPlugin {
             throw PluginError.toolNotFound(Constants.generatorToolName)
         }
         
-        let outputDirectory = context.pluginWorkDirectoryURL
-            .appending(path: target.name)
-            .appending(path: Constants.generatedFolder)
-        
-        do {
-            try FileManager.default.createDirectory(at: outputDirectory, withIntermediateDirectories: true)
-        } catch {
-            throw PluginError.directoryCreationFailed(outputDirectory.path())
+        for target in context.package.targets {
+            guard let sourceModule = target.sourceModule else {
+                continue
+            }
+            
+            let outputDirectory = context.pluginWorkDirectoryURL
+                .appending(path: target.name)
+                .appending(path: Constants.generatedFolder)
+            
+            do {
+                try FileManager.default.createDirectory(at: outputDirectory, withIntermediateDirectories: true)
+            } catch {
+                throw PluginError.directoryCreationFailed(outputDirectory.path())
+            }
+            
+            let outputFile = outputDirectory.appending(path: Constants.generatedFile)
+            
+            Diagnostics.remark("[NavigationPlugin] Will generate \(Constants.generatedFile) at: \(outputFile.path())")
+            
+            let process = Process()
+            process.executableURL = navigationGenerator.url
+            process.arguments = [
+                sourceModule.directoryURL.path(),
+                outputFile.path()
+            ]
+            
+            try process.run()
+            process.waitUntilExit()
         }
-        
-        let outputFile = outputDirectory.appending(path: Constants.generatedFile)
-        
-        Diagnostics.remark("[NavigationPlugin] Will generate \(Constants.generatedFile) at: \(outputFile.path())")
-        
-        return [
-            .buildCommand(
-                displayName: "\(Constants.pluginDisplayName) For \(target.name)",
-                executable: navigationGenerator.url,
-                arguments: [
-                    sourceModule.directoryURL.path(),
-                    outputFile.path()
-                ],
-                inputFiles: [],
-                outputFiles: [outputFile]
-            )
-        ]
     }
 }
 
@@ -81,52 +78,50 @@ import XcodeProjectPlugin
 /// This extension allows the NavigationPlugin to work with Xcode projects that include
 /// Swift packages. The plugin will run during Xcode builds and generate navigation routes
 /// for any targets that depend on this package.
-extension NavigationPlugin: XcodeBuildToolPlugin {
+extension NavigationPlugin: XcodeCommandPlugin {
     
-    /// Creates build commands for Xcode project targets.
+    /// Performs the command for Xcode project targets.
     ///
-    /// This method is called by Xcode during the build process when building projects
+    /// This method is called by Xcode when the command is executed from projects
     /// that include this Swift package as a dependency.
     ///
     /// - Parameters:
     ///   - context: The Xcode plugin context providing access to tools and project information
-    ///   - target: The Xcode target being built
-    /// - Returns: An array of build commands to execute
+    ///   - arguments: Command line arguments passed to the plugin
     /// - Throws: `PluginError` if tools are missing or directory creation fails
-    func createBuildCommands(context: XcodeProjectPlugin.XcodePluginContext, target: XcodeProjectPlugin.XcodeTarget) throws -> [PackagePlugin.Command] {
-        let navigationGenerator: PackagePlugin.PluginContext.Tool
+    func performCommand(context: XcodeProjectPlugin.XcodePluginContext, arguments: [String]) throws {
+        let navigationGenerator: PluginContext.Tool
         do {
             navigationGenerator = try context.tool(named: Constants.generatorToolName)
         } catch {
             throw PluginError.toolNotFound(Constants.generatorToolName)
         }
         
-        let outputDirectory = context.pluginWorkDirectoryURL
-            .appending(path: target.displayName)
-            .appending(path: Constants.generatedFolder)
-        
-        do {
-            try FileManager.default.createDirectory(at: outputDirectory, withIntermediateDirectories: true)
-        } catch {
-            throw PluginError.directoryCreationFailed(outputDirectory.path())
+        for target in context.xcodeProject.targets {
+            let outputDirectory = context.xcodeProject.directoryURL
+                .appending(path: target.displayName)
+                .appending(path: Constants.generatedFolder)
+            
+            do {
+                try FileManager.default.createDirectory(at: outputDirectory, withIntermediateDirectories: true)
+            } catch {
+                throw PluginError.directoryCreationFailed(outputDirectory.path())
+            }
+            
+            let outputFile = outputDirectory.appending(path: Constants.generatedFile)
+            
+            Diagnostics.remark("[NavigationPlugin] Will generate \(Constants.generatedFile) at: \(outputFile.path())")
+            
+            let process = Process()
+            process.executableURL = navigationGenerator.url
+            process.arguments = [
+                context.xcodeProject.directoryURL.path(),
+                outputFile.path()
+            ]
+            
+            try process.run()
+            process.waitUntilExit()
         }
-        
-        let outputFile = outputDirectory.appending(path: Constants.generatedFile)
-        
-        Diagnostics.remark("[NavigationPlugin] Will generate \(Constants.generatedFile) at: \(outputFile.path())")
-        
-        return [
-            .buildCommand(
-                displayName: "\(Constants.pluginDisplayName) For \(target.displayName)",
-                executable: navigationGenerator.url,
-                arguments: [
-                    context.xcodeProject.directoryURL.path(),
-                    outputFile.path()
-                ],
-                inputFiles: [],
-                outputFiles: [outputFile]
-            )
-        ]
     }
 }
 #endif
