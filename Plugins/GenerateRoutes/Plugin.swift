@@ -38,6 +38,9 @@ struct GenerateRoutesPlugin: CommandPlugin {
             throw PluginError.toolNotFound(Constants.generatorToolName)
         }
         
+        // Parse route name from arguments, fallback to default
+        let routeName = parseRouteName(from: arguments)
+        
         for target in context.package.targets {
             guard let sourceModule = target.sourceModule else {
                 continue
@@ -53,9 +56,9 @@ struct GenerateRoutesPlugin: CommandPlugin {
                 throw PluginError.directoryCreationFailed(outputDirectory.path())
             }
             
-            let outputFile = outputDirectory.appending(path: Constants.generatedFile)
+            let outputFile = outputDirectory.appending(path: "\(routeName).swift")
             
-            Diagnostics.remark("[GenerateRoutes] Will generate \(Constants.generatedFile) at: \(outputFile.path())")
+            Diagnostics.remark("[GenerateRoutes] Will generate \(routeName).swift at: \(outputFile.path())")
             
             let process = Process()
             process.executableURL = navigationGenerator.url
@@ -97,6 +100,9 @@ extension GenerateRoutesPlugin: XcodeCommandPlugin {
             throw PluginError.toolNotFound(Constants.generatorToolName)
         }
         
+        // Parse route name from arguments, fallback to default
+        let routeName = parseRouteName(from: arguments)
+        
         for target in context.xcodeProject.targets {
             let outputDirectory = context.xcodeProject.directoryURL
                 .appending(path: target.displayName)
@@ -108,9 +114,9 @@ extension GenerateRoutesPlugin: XcodeCommandPlugin {
                 throw PluginError.directoryCreationFailed(outputDirectory.path())
             }
             
-            let outputFile = outputDirectory.appending(path: Constants.generatedFile)
+            let outputFile = outputDirectory.appending(path: "\(routeName).swift")
             
-            Diagnostics.remark("[GenerateRoutes] Will generate \(Constants.generatedFile) at: \(outputFile.path())")
+            Diagnostics.remark("[GenerateRoutes] Will generate \(routeName).swift at: \(outputFile.path())")
             
             let process = Process()
             process.executableURL = navigationGenerator.url
@@ -160,6 +166,33 @@ private enum Constants {
     static let generatorToolName = "RouteGenerator"
     /// The name of the folder where generated files are stored.
     static let generatedFolder = "Generated"
-    /// The name of the generated Swift file containing navigation routes.
-    static let generatedFile = "NavigationRoutes.swift"
+    /// The default name for the generated route type when no custom name is provided.
+    static let defaultRouteName = "Route"
+}
+
+/// Helper function to parse route name from command line arguments.
+///
+/// Looks for arguments in the format "--name=CustomName" or "--name CustomName"
+/// and returns the specified name, or falls back to the default route name.
+///
+/// - Parameter arguments: Command line arguments passed to the plugin
+/// - Returns: The route name to use for the generated file
+private func parseRouteName(from arguments: [String]) -> String {
+    for i in 0..<arguments.count {
+        let arg = arguments[i]
+        
+        // Handle --name=CustomName format
+        if arg.hasPrefix("--name=") {
+            let name = String(arg.dropFirst("--name=".count))
+            return name.isEmpty ? Constants.defaultRouteName : name
+        }
+        
+        // Handle --name CustomName format
+        if arg == "--name" && i + 1 < arguments.count {
+            let name = arguments[i + 1]
+            return name.isEmpty ? Constants.defaultRouteName : name
+        }
+    }
+    
+    return Constants.defaultRouteName
 }
