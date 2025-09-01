@@ -51,7 +51,7 @@ let package = Package(
             ]
         ),
         .executableTarget(
-            name: "NavigationCodeGenerator"
+            name: "RouteGenerator"
         ),
         .plugin(
             name: "Generate routes",
@@ -64,7 +64,7 @@ let package = Package(
                     .writeToPackageDirectory(reason: "Create file for navigation route")
                 ]
             ),
-            dependencies: ["NavigationCodeGenerator"],
+            dependencies: ["RouteGenerator"],
             path: "Plugins/GenerateRoutes"
         ),
         .testTarget(

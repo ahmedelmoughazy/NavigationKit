@@ -1,5 +1,5 @@
 //
-//  RoutableMacro.swift
+//  Routable.swift
 //  Navigation
 //
 //  Created by Ahmed Elmoughazy on 08.08.25
@@ -36,7 +36,7 @@
 /// - Route information for the code generator
 /// - Navigation metadata for the view
 ///
-/// - Note: This macro works in conjunction with the NavigationCodeGenerator build plugin
+/// - Note: This macro works in conjunction with the RouteGenerator build plugin
 /// - SeeAlso: `Routable` protocol for manual conformance
 @attached(extension, conformances: Routable)
 public macro Routable() = #externalMacro(module: "NavigationMacro", type: "RoutableMacro")

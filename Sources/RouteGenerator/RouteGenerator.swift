@@ -1,5 +1,5 @@
 //
-//  NavigationCodeGenerator.swift
+//  RouteGenerator.swift
 //  Navigation
 //
 //  Created by Ahmed Elmoughazy on 17.08.25
@@ -8,7 +8,7 @@
 
 import Foundation
 
-// MARK: - NavigationCodeGenerator
+// MARK: - RouteGenerator
 
 /// Main entry point for the navigation code generation tool.
 ///
@@ -16,9 +16,9 @@ import Foundation
 /// and generates a comprehensive NavigationRoute enum that provides type-safe
 /// navigation throughout the application.
 ///
-/// Usage: NavigationCodeGenerator <source-root> <output-path>
+/// Usage: RouteGenerator <source-root> <output-path>
 @main
-struct NavigationCodeGenerator {
+struct RouteGenerator {
     
     // MARK: - Main Entry Point
     
@@ -53,7 +53,7 @@ struct NavigationCodeGenerator {
 }
 
 // MARK: - File Scanning
-extension NavigationCodeGenerator {
+extension RouteGenerator {
     
     /// Recursively scans a directory tree for Swift files containing @Routable views.
     ///
@@ -97,7 +97,7 @@ extension NavigationCodeGenerator {
 }
 
 // MARK: - View Extraction
-extension NavigationCodeGenerator {
+extension RouteGenerator {
     
     /// Extracts @Routable views from Swift source code content.
     ///
@@ -144,7 +144,7 @@ extension NavigationCodeGenerator {
 }
 
 // MARK: - Name Extraction
-extension NavigationCodeGenerator {
+extension RouteGenerator {
     
     /// Extracts the view name from a Swift struct or class declaration.
     ///
@@ -169,7 +169,7 @@ extension NavigationCodeGenerator {
 }
 
 // MARK: - Parameter Extraction
-extension NavigationCodeGenerator {
+extension RouteGenerator {
     
     /// Extracts parameter information for a view within a limited scope.
     ///
@@ -228,7 +228,7 @@ extension NavigationCodeGenerator {
 }
 
 // MARK: - Initializer Parsing
-extension NavigationCodeGenerator {
+extension RouteGenerator {
     
     /// Parses parameters from an explicit init method declaration.
     ///
@@ -285,7 +285,7 @@ extension NavigationCodeGenerator {
 }
 
 // MARK: - Property Parsing
-extension NavigationCodeGenerator {
+extension RouteGenerator {
     
     /// Parses a stored property declaration into a Parameter object.
     ///
@@ -319,7 +319,7 @@ extension NavigationCodeGenerator {
 }
 
 // MARK: - Code Generation
-extension NavigationCodeGenerator {
+extension RouteGenerator {
     
     /// Generates the complete NavigationRoute enum source code.
     ///
@@ -362,7 +362,7 @@ extension NavigationCodeGenerator {
 
 /// Constants for logging messages displayed during code generation
 private enum LogConstants {
-    static let usageMessage = "Usage: NavigationCodeGenerator <source-root> <output-path>"
+    static let usageMessage = "Usage: RouteGenerator <source-root> <output-path>"
     static let scanningMessage = "🔍 Scanning for @Routable views in: "
     static let foundMessage = "📱 Found %d routable views"
     static let generatedMessage = "✅ Generated navigation routes at: "

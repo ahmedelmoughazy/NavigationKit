@@ -19,7 +19,7 @@ import SwiftUI
 ///
 /// ## Automatic Route Generation
 ///
-/// When a view conforms to `Routable`, the NavigationCodeGenerator build plugin
+/// When a view conforms to `Routable`, the RouteGenerator build plugin
 /// will automatically:
 /// - Include the view in the generated `NavigationRoute` enum
 /// - Generate appropriate enum cases with required parameters
@@ -74,7 +74,7 @@ import SwiftUI
 /// }
 /// ```
 ///
-/// - Note: This protocol works in conjunction with the NavigationCodeGenerator build plugin
+/// - Note: This protocol works in conjunction with the RouteGenerator build plugin
 /// - SeeAlso: `@Routable` macro for automatic conformance
 /// - SeeAlso: `Router` for navigation state management
 public protocol Routable: View { }

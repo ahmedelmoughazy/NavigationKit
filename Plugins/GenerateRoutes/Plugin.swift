@@ -157,15 +157,9 @@ private enum PluginError: Error, LocalizedError {
 /// used by the plugin, making maintenance easier and reducing the risk of typos.
 private enum Constants {
     /// The name of the code generator tool executable.
-    static let generatorToolName = "NavigationCodeGenerator"
+    static let generatorToolName = "RouteGenerator"
     /// The name of the folder where generated files are stored.
     static let generatedFolder = "Generated"
     /// The name of the generated Swift file containing navigation routes.
     static let generatedFile = "NavigationRoutes.swift"
-    /// File extension for Swift source files.
-    static let swiftFileExtension = ".swift"
-    /// The macro annotation that marks views as routable.
-    static let routableMacro = "@Routable"
-    /// The display name shown in build logs for this plugin.
-    static let pluginDisplayName = "Generate Navigation Routes"
 }
