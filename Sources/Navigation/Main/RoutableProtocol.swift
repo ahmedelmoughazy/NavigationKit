@@ -1,5 +1,5 @@
 //
-//  Routable.swift
+//  RoutableProtocol.swift
 //  Navigation
 //
 //  Created by Ahmed Elmoughazy on 08.08.25
@@ -21,7 +21,7 @@ import SwiftUI
 ///
 /// When a view conforms to `Routable`, the RouteGenerator build plugin
 /// will automatically:
-/// - Include the view in the generated `NavigationRoute` enum
+/// - Include the view in the generated `Route` enum
 /// - Generate appropriate enum cases with required parameters
 /// - Create view instantiation logic
 /// - Handle navigation path management
@@ -62,7 +62,7 @@ import SwiftUI
 ///
 /// For a view with parameters, the generator creates:
 /// ```swift
-/// enum NavigationRoute {
+/// enum Route {
 ///     case profileView(userId: String)
 ///     
 ///     var body: some View {

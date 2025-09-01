@@ -13,7 +13,7 @@ import Foundation
 /// Main entry point for the navigation code generation tool.
 ///
 /// This executable scans Swift source files for views marked with @Routable
-/// and generates a comprehensive NavigationRoute enum that provides type-safe
+/// and generates a comprehensive Route enum that provides type-safe
 /// navigation throughout the application.
 ///
 /// Usage: RouteGenerator <source-root> <output-path>
@@ -322,14 +322,14 @@ extension RouteGenerator {
 // MARK: - Code Generation
 extension RouteGenerator {
     
-    /// Generates the complete NavigationRoute enum source code.
+    /// Generates the complete Route enum source code.
     ///
     /// Creates a comprehensive enum with all discovered routable views,
     /// including conformances to necessary protocols and implementations
     /// for view instantiation and string representation.
     ///
     /// - Parameter views: Array of ViewInfo objects to generate code for
-    /// - Returns: Complete Swift source code for the NavigationRoute enum
+    /// - Returns: Complete Swift source code for the Route enum
     static func generateNavigationCode(from views: [ViewInfo], with name: String) -> String {
         var output = CodeTemplates.fileHeader(name: name, date: Date())
         

@@ -32,7 +32,7 @@ struct RoutableMacroPlugin: CompilerPlugin {
 /// Implementation of the @Routable macro for marking SwiftUI views as navigable.
 ///
 /// This macro enables automatic code generation for navigation routes by marking
-/// SwiftUI views that should be included in the generated NavigationRoute enum.
+/// SwiftUI views that should be included in the generated Route enum.
 /// The macro itself doesn't generate code directly but serves as a marker for
 /// the RouteGenerator tool.
 ///

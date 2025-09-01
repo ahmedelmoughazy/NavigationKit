@@ -12,7 +12,7 @@ import Foundation
 /// A Swift Package Manager command plugin that generates navigation routes from source files.
 ///
 /// This plugin scans Swift source files for views marked with the `@Routable` macro and
-/// automatically generates a `NavigationRoute` enum containing all the routable views.
+/// automatically generates a `Route` enum containing all the routable views.
 /// The generated file includes view instantiation logic and routing capabilities.
 ///
 /// The plugin supports both Swift Package Manager projects and Xcode projects through

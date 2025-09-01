@@ -27,7 +27,7 @@ import Combine
 ///
 /// ## Basic Usage
 /// ```swift
-/// let router = Router<NavigationRoute>()
+/// let router = Router<Route>()
 ///
 /// // Stack navigation
 /// router.push(destination: .home)

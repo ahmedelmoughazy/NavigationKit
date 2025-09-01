@@ -13,7 +13,7 @@
 /// This macro automatically adds `Routable` protocol conformance to the annotated view,
 /// enabling it to be used with the navigation system's automatic route generation.
 /// The code generator will scan for views marked with this macro and include them
-/// in the generated `NavigationRoute` enum.
+/// in the generated `Route` enum.
 ///
 /// ## Usage
 /// ```swift
