@@ -47,6 +47,11 @@ struct RoutableMacroPlugin: CompilerPlugin {
 ///     }
 /// }
 /// ```
+///
+/// This macro now generates the following:
+/// - `Routable` protocol conformance
+/// - `==` operator for equality comparison based on a unique `id`
+/// - `hash(into:)` function for hashing based on the same `id`
 public struct RoutableMacro: MemberMacro, ExtensionMacro {
     
     // MARK: - ExtensionMacro Implementation
@@ -72,11 +77,20 @@ public struct RoutableMacro: MemberMacro, ExtensionMacro {
         in context: some MacroExpansionContext
     ) throws -> [ExtensionDeclSyntax] {
         
-        // Join protocol conformances into a single string
-        let confirmations = protocols.map { $0.trimmed.description }.joined(separator: ", ")
-        
-        // Generate extension declaration
-        let extensionDecl = try ExtensionDeclSyntax("extension \(type): \(raw: confirmations) { }")
+        // Create extension with the property
+        let extensionDecl = try ExtensionDeclSyntax(
+        """
+        extension \(type): Routable {
+            public static func == (lhs: \(type), rhs: \(type)) -> Bool {
+                return lhs.id == rhs.id
+            }
+
+            public func hash(into hasher: inout Hasher) {
+                hasher.combine(id)
+            }
+        }
+        """
+        )
         
         return [extensionDecl]
     }

@@ -57,6 +57,7 @@ import SwiftUI
 /// - Should have a public or internal access level for route generation
 /// - Any required initializer parameters will be included in the generated routes
 /// - Environment objects and computed properties are automatically excluded
+/// - Includes `==` operator and `hash(into:)` function for `Hashable` and `Equatable` conformance
 ///
 /// ## Generated Routes
 ///
@@ -77,4 +78,10 @@ import SwiftUI
 /// - Note: This protocol works in conjunction with the RouteGenerator build plugin
 /// - SeeAlso: `@Routable` macro for automatic conformance
 /// - SeeAlso: `Router` for navigation state management
-public protocol Routable: View { }
+public protocol Routable: Hashable, Equatable, Identifiable<String>, View {
+    var id: ID { get }
+}
+
+public extension Routable {
+    var id: ID { String(describing: Self.self) }
+}

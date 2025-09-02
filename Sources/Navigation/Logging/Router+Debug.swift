@@ -100,16 +100,16 @@ private extension Router {
     /// - Parameter indent: The indentation string to use
     func printRouterContent(indent: String) {
         if !navigationPath.isEmpty {
-            let pathIds = navigationPath.map { $0.description }
+            let pathIds = navigationPath.map { $0.id }
             print("\(indent)\(DebugConstants.pathIcon) Path: \(pathIds)")
         }
         
         if let sheet = presentingSheet {
-            print("\(indent)\(DebugConstants.sheetIcon) Sheet: \(sheet.description)")
+            print("\(indent)\(DebugConstants.sheetIcon) Sheet: \(sheet.id)")
         }
         
         if let fullScreen = presentingFullScreen {
-            print("\(indent)\(DebugConstants.fullScreenIcon) FullScreen: \(fullScreen.description)")
+            print("\(indent)\(DebugConstants.fullScreenIcon) FullScreen: \(fullScreen.id)")
         }
     }
 }

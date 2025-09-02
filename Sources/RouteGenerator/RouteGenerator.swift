@@ -339,7 +339,6 @@ extension RouteGenerator {
         }
         
         output += CodeTemplates.idProperty
-        output += CodeTemplates.descriptionSwitchHeader
         
         // Add description cases
         for view in views {
@@ -438,7 +437,7 @@ private enum CodeTemplates {
 import SwiftUI
 import Navigation
 
-public enum \(name): Hashable, Identifiable, CustomStringConvertible, View {
+public enum \(name): Routable, View {
 
 """
     }
@@ -446,14 +445,6 @@ public enum \(name): Hashable, Identifiable, CustomStringConvertible, View {
     static let idProperty = """
 
     public var id: String {
-        description
-    }
-
-"""
-    
-    static let descriptionSwitchHeader = """
-
-    public var description: String {
         switch self {
 
 """

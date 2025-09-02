@@ -47,7 +47,7 @@ import Combine
 /// - Note: Router requires destination types that conform to Hashable, Identifiable, CustomStringConvertible, and View
 /// - SeeAlso: `BaseNavigation` for the SwiftUI integration
 /// - SeeAlso: `PresentationType` for modal presentation options
-public final class Router<Destination: Hashable & Identifiable & CustomStringConvertible & View>: ObservableObject {
+public final class Router<Destination: Routable & View>: ObservableObject {
     
     // MARK: - Initialization
     
@@ -124,12 +124,12 @@ public extension Router {
         var ids: [String] = []
         var node: Router? = rootRouter
         while let router = node {
-            ids.append(contentsOf: router.navigationPath.map { $0.description })
+            ids.append(contentsOf: router.navigationPath.map { $0.id })
             if let sheet = router.presentingSheet {
-                ids.append(sheet.description)
+                ids.append(sheet.id)
             }
             if let fullScreen = router.presentingFullScreen {
-                ids.append(fullScreen.description)
+                ids.append(fullScreen.id)
             }
             node = router.childRouter
         }
@@ -186,7 +186,7 @@ public extension Router {
     ///   - destination: The destination to pop back to
     ///   - animated: Whether to animate the transition (default: true)
     func pop(to destination: Destination, animated: Bool = true) {
-        if let indexOfDestination = navigationPath.lastIndex(where: { $0 == destination }) {
+        if let indexOfDestination = navigationPath.lastIndex(where: { $0.id == destination.id }) {
             let removeStart = indexOfDestination + 1
             if removeStart < navigationPath.count {
                 execute(animated) { [weak self] in
@@ -282,7 +282,7 @@ public extension Router {
     func remove(destinations: Destination..., animated: Bool = true) {
         var tempPath = navigationPath
         destinations.forEach { destination in
-            if let index = tempPath.lastIndex(where: { $0.description == destination.description }) {
+            if let index = tempPath.lastIndex(where: { $0.id == destination.id }) {
                 tempPath.remove(at: index)
             }
         }

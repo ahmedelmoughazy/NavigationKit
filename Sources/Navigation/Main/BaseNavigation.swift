@@ -39,7 +39,7 @@ import SwiftUI
 ///
 /// - Note: This view automatically creates child routers for modal presentations
 /// - SeeAlso: `Router` for navigation state management
-public struct BaseNavigation<Content: View, Destination: Hashable & Identifiable & CustomStringConvertible & View>: View {
+public struct BaseNavigation<Content: View, Destination: Routable & View>: View {
     
     // MARK: - Properties
     

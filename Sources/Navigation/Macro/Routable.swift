@@ -33,10 +33,11 @@
 /// ## Generated Code
 /// The macro generates:
 /// - `Routable` protocol conformance
-/// - Route information for the code generator
-/// - Navigation metadata for the view
+/// - `==` operator for equality comparison based on a unique `id`
+/// - `hash(into:)` function for hashing based on the same `id`
 ///
 /// - Note: This macro works in conjunction with the RouteGenerator build plugin
 /// - SeeAlso: `Routable` protocol for manual conformance
-@attached(extension, conformances: Routable)
+//@attached(extension, conformances: Routable)
+@attached(extension, conformances: Routable, names: named(==), named(hash(into:)))
 public macro Routable() = #externalMacro(module: "NavigationMacro", type: "RoutableMacro")
