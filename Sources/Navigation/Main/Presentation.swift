@@ -1,5 +1,5 @@
 //
-//  PresentationType.swift
+//  Presentation.swift
 //  Navigation
 //
 //  Created by Ahmed Elmoughazy on 24.08.25
@@ -12,7 +12,7 @@ import Foundation
 
 extension Router {
     
-    // MARK: - PresentationType
+    // MARK: - Presentation
     
     /// Defines the different types of modal presentations available in the navigation system.
     ///
@@ -39,7 +39,7 @@ extension Router {
     /// ```
     ///
     /// - SeeAlso: `Router.present(_:as:)` for presentation methods
-    public enum PresentationType: CaseIterable {
+    public enum Presentation: CaseIterable {
         
         // MARK: - Cases
         

@@ -46,7 +46,7 @@ import Combine
 ///
 /// - Note: Router requires destination types that conform to Hashable, Identifiable, CustomStringConvertible, and View
 /// - SeeAlso: `BaseNavigation` for the SwiftUI integration
-/// - SeeAlso: `PresentationType` for modal presentation options
+/// - SeeAlso: `Presentation` for modal presentation options
 public final class Router<Destination: Routable & View>: ObservableObject {
     
     // MARK: - Initialization
@@ -229,7 +229,7 @@ public extension Router {
     ///   - destination: The destination to present
     ///   - presentationType: The type of modal presentation
     ///   - animated: Whether to animate the transition (default: true)
-    func present(destination: Destination, as presentationType: PresentationType, animated: Bool = true) {
+    func present(destination: Destination, as presentationType: Presentation, animated: Bool = true) {
         execute(animated) { [weak self] in
             switch presentationType {
             case .sheet:
