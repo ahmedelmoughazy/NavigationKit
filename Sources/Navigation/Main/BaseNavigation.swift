@@ -32,10 +32,7 @@ import SwiftUI
 ///
 /// ## Type Requirements
 /// The `Destination` type must conform to:
-/// - `Hashable`: For navigation path management
-/// - `Identifiable`: For SwiftUI list and sheet identification
-/// - `CustomStringConvertible`: For debug logging
-/// - `View`: For rendering as SwiftUI content
+/// - `Routable`: For path management.
 ///
 /// - Note: This view automatically creates child routers for modal presentations
 /// - SeeAlso: `Router` for navigation state management
