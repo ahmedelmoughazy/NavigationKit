@@ -47,7 +47,7 @@ import Combine
 /// - Note: Router requires destination types that conform to Hashable, Identifiable, CustomStringConvertible, and View
 /// - SeeAlso: `BaseNavigation` for the SwiftUI integration
 /// - SeeAlso: `Presentation` for modal presentation options
-public final class Router<Destination: Routable & View>: ObservableObject {
+public final class Router<Destination: Routable>: ObservableObject {
     
     // MARK: - Initialization
     
