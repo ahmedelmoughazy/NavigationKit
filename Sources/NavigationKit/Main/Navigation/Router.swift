@@ -216,6 +216,7 @@ public extension Router {
     /// - Parameter animated: Whether to animate the transition (default: true)
     func popAll(animated: Bool = true) {
         execute(animated) { [weak self] in
+            self?.dismissAlert(animated: animated)
             self?.dismiss(animated: animated)
             self?.parentRouter?.popAll(animated: animated)
             self?.navigationPath.removeAll()
