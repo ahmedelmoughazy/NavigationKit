@@ -1,6 +1,6 @@
 //
 //  BaseNavigation.swift
-//  Navigation
+//  NavigationKit
 //
 //  Created by Ahmed Elmoughazy on 08.08.25
 //  Copyright © 2025 Ahmed Elmoghazy. All rights reserved.
@@ -66,9 +66,7 @@ public struct BaseNavigation<Content: View, Destination: Routable>: View {
     public var body: some View {
         NavigationStack(path: $router.navigationPath) {
             content()
-                .navigationDestination(for: Destination.self) { destination in
-                    destination
-                }
+                .navigationDestination(for: Destination.self) { $0 }
         }
         .environmentObject(router.activeRouter)
         .sheet(item: $router.presentingSheet) {
@@ -81,13 +79,14 @@ public struct BaseNavigation<Content: View, Destination: Routable>: View {
         } content: { destination in
             createFullScreenContent(for: destination)
         }
-        .onChange(of: router.navigationPath) { _, _ in
+        .alert(alertItem: $router.alertItem)
+        .onChange(of: router.navigationPath) { _ in
             logNavigationHierarchy()
         }
-        .onChange(of: router.presentingSheet) { _, _ in
+        .onChange(of: router.presentingSheet) { _ in
             logNavigationHierarchy()
         }
-        .onChange(of: router.presentingFullScreen) { _, _ in
+        .onChange(of: router.presentingFullScreen) { _ in
             logNavigationHierarchy()
         }
     }

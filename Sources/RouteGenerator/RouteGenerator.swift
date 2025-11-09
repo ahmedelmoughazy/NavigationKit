@@ -1,6 +1,6 @@
 //
 //  RouteGenerator.swift
-//  Navigation
+//  NavigationKit
 //
 //  Created by Ahmed Elmoughazy on 17.08.25
 //  Copyright © 2025 Ahmed Elmoghazy. All rights reserved.
@@ -435,7 +435,7 @@ private enum CodeTemplates {
 // will be overridden by the next generation.
 // Generated at: \(date)
 import SwiftUI
-import Navigation
+import NavigationKit
 
 public enum \(name): Routable, View {
 

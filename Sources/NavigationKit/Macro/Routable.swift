@@ -1,6 +1,6 @@
 //
 //  Routable.swift
-//  Navigation
+//  NavigationKit
 //
 //  Created by Ahmed Elmoughazy on 08.08.25
 //  Copyright © 2025 Ahmed Elmoghazy. All rights reserved.
@@ -40,4 +40,4 @@
 /// - SeeAlso: `Routable` protocol for manual conformance
 //@attached(extension, conformances: Routable)
 @attached(extension, conformances: Routable, names: named(==), named(hash(into:)))
-public macro Routable() = #externalMacro(module: "NavigationMacro", type: "RoutableMacro")
+public macro Routable() = #externalMacro(module: "NavigationKitMacro", type: "RoutableMacro")

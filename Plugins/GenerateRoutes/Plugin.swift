@@ -1,6 +1,6 @@
 //
 //  Plugin.swift
-//  Navigation
+//  NavigationKit
 //
 //  Created by Ahmed Elmoughazy on 17.08.25
 //  Copyright © 2025 Ahmed Elmoghazy. All rights reserved.

@@ -1,6 +1,6 @@
 //
 //  Router.swift
-//  Navigation
+//  NavigationKit
 //
 //  Created by Ahmed Elmoughazy on 29.02.24
 //  Copyright © 2024 Ahmed Elmoghazy. All rights reserved.
@@ -70,6 +70,9 @@ public final class Router<Destination: Routable>: ObservableObject {
     @Published internal var presentingFullScreen: Destination? = nil {
         didSet { notifyHierarchyChanged() }
     }
+    
+    /// The currently presented alert, if any.
+    @Published internal var alertItem: AlertItem? = nil
     
     /// The parent router in the hierarchy, if this is a child router.
     internal weak var parentRouter: Router? {
@@ -252,6 +255,30 @@ public extension Router {
                 self?.parentRouter?.presentingFullScreen = nil
                 self?.parentRouter?.childRouter = nil
             }
+        }
+    }
+}
+
+// MARK: - Alert Presentation
+public extension Router {
+    
+    /// Presents an alert without interfering with modal presentations.
+    ///
+    /// - Parameters:
+    ///   - alertItem: The alert configuration to present
+    ///   - animated: Whether to animate the transition (default: true)
+    func presentAlert(alertItem: AlertItem, animated: Bool = true) {
+        execute(animated) { [weak self] in
+            self?.alertItem = alertItem
+        }
+    }
+    
+    /// Dismisses the currently presented alert.
+    ///
+    /// - Parameter animated: Whether to animate the transition (default: true)
+    func dismissAlert(animated: Bool = true) {
+        execute(animated) { [weak self] in
+            self?.alertItem = nil
         }
     }
 }
