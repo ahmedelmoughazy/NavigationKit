@@ -3,7 +3,7 @@
 A powerful, type-safe navigation system for SwiftUI applications that provides programmatic navigation with hierarchical state management and automatic route generation.
 
 [![Swift](https://img.shields.io/badge/Swift-6.1+-orange.svg)](https://swift.org)
-[![Platforms](https://img.shields.io/badge/Platforms-iOS%20|%20macOS%20|%20tvOS%20|%20watchOS-blue.svg)](https://developer.apple.com/swift)
+[![Platform](https://img.shields.io/badge/Platform-iOS%2016.0%2B-blue.svg)](https://developer.apple.com/swift)
 [![SPM](https://img.shields.io/badge/SPM-Compatible-brightgreen.svg)](https://swift.org/package-manager)
 
 ## Features
@@ -19,7 +19,7 @@ A powerful, type-safe navigation system for SwiftUI applications that provides p
 
 ## Requirements
 
-- iOS 16.0+ / macOS 12.0+ / tvOS 16.0+ / watchOS 10.0+ / macCatalyst 17.0+
+- iOS 16.0+
 - Swift 6.1+
 - Xcode 15.0+
 

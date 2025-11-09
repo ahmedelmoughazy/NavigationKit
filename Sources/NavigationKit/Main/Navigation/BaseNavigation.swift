@@ -74,11 +74,13 @@ public struct BaseNavigation<Content: View, Destination: Routable>: View {
         } content: { destination in
             createSheetContent(for: destination)
         }
+        #if os(iOS)
         .fullScreenCover(item: $router.presentingFullScreen) {
             router.removeChildRouter()
         } content: { destination in
             createFullScreenContent(for: destination)
         }
+        #endif
         .alert(alertItem: $router.alertItem)
         .onChange(of: router.navigationPath) { _ in
             logNavigationHierarchy()

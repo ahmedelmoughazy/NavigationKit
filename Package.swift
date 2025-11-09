@@ -7,11 +7,8 @@ import CompilerPluginSupport
 let package = Package(
     name: "NavigationKit",
     platforms: [
-        .macOS(.v12),
         .iOS(.v16),
-        .tvOS(.v16),
-        .watchOS(.v10),
-        .macCatalyst(.v17)
+        .macOS(.v14)
     ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
