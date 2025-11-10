@@ -13,10 +13,9 @@ import Combine
 
 /// A hierarchical navigation state manager that provides programmatic navigation capabilities.
 ///
-/// `Router` manages navigation state for a specific destination type and supports both
-/// stack-based navigation (push/pop) and modal presentations (sheets and full-screen covers).
-/// It maintains a hierarchy of child routers for modal presentations and provides reactive
-/// updates through Combine publishers.
+/// `Router` manages navigation state and supports both stack-based navigation (push/pop) 
+/// and modal presentations (sheets and full-screen covers). It maintains a hierarchy of 
+/// child routers for modal presentations and provides reactive updates through Combine publishers.
 ///
 /// ## Features
 /// - **Stack Navigation**: Push and pop destinations in a navigation stack
@@ -27,7 +26,7 @@ import Combine
 ///
 /// ## Basic Usage
 /// ```swift
-/// let router = Router<Route>()
+/// let router = Router()
 ///
 /// // Stack navigation
 /// router.push(destination: .home)
@@ -44,10 +43,10 @@ import Combine
 /// - Child routers are created automatically for modal presentations
 /// - Navigation state changes propagate through the hierarchy
 ///
-/// - Note: Router requires destination types that conform to Hashable, Identifiable, CustomStringConvertible, and View
+/// - Note: Destination views must conform to Hashable, Identifiable, and View protocols
 /// - SeeAlso: `BaseNavigation` for the SwiftUI integration
 /// - SeeAlso: `Presentation` for modal presentation options
-public final class Router<Destination: Routable>: ObservableObject {
+public final class Router: ObservableObject {
     
     // MARK: - Initialization
     
@@ -57,17 +56,17 @@ public final class Router<Destination: Routable>: ObservableObject {
     // MARK: - Properties
     
     /// The current navigation path as an array of destinations.
-    @Published internal var navigationPath: [Destination] = [] {
+    @Published internal var navigationPath: [AnyDestination] = [] {
         didSet { notifyHierarchyChanged() }
     }
     
     /// The currently presented sheet destination, if any.
-    @Published internal var presentingSheet: Destination? = nil {
+    @Published internal var presentingSheet: AnyDestination? = nil {
         didSet { notifyHierarchyChanged() }
     }
     
     /// The currently presented full-screen cover destination, if any.
-    @Published internal var presentingFullScreen: Destination? = nil {
+    @Published internal var presentingFullScreen: AnyDestination? = nil {
         didSet { notifyHierarchyChanged() }
     }
     
@@ -166,9 +165,9 @@ public extension Router {
     /// - Parameters:
     ///   - destination: The destination to push
     ///   - animated: Whether to animate the transition (default: true)
-    func push(destination: Destination, animated: Bool = true) {
+    func push<Destination: View>(destination: Destination, animated: Bool = true) {
         execute(animated) { [weak self] in
-            self?.navigationPath.append(destination)
+            self?.navigationPath.append(AnyDestination(destination))
         }
     }
     
@@ -188,8 +187,8 @@ public extension Router {
     /// - Parameters:
     ///   - destination: The destination to pop back to
     ///   - animated: Whether to animate the transition (default: true)
-    func pop(to destination: Destination, animated: Bool = true) {
-        if let indexOfDestination = navigationPath.lastIndex(where: { $0.id == destination.id }) {
+    func pop<Destination: View>(to destination: Destination, animated: Bool = true) {
+        if let indexOfDestination = navigationPath.lastIndex(where: { $0.id == AnyDestination(destination).id }) {
             let removeStart = indexOfDestination + 1
             if removeStart < navigationPath.count {
                 execute(animated) { [weak self] in
@@ -233,13 +232,13 @@ public extension Router {
     ///   - destination: The destination to present
     ///   - presentationType: The type of modal presentation
     ///   - animated: Whether to animate the transition (default: true)
-    func present(destination: Destination, as presentationType: Presentation, animated: Bool = true) {
+    func present<Destination: View>(destination: Destination, as presentationType: Presentation, animated: Bool = true) {
         execute(animated) { [weak self] in
             switch presentationType {
             case .sheet:
-                self?.presentingSheet = destination
+                self?.presentingSheet = AnyDestination(destination)
             case .fullScreenCover:
-                self?.presentingFullScreen = destination
+                self?.presentingFullScreen = AnyDestination(destination)
             }
         }
     }
@@ -293,9 +292,9 @@ public extension Router {
     ///   - destination: The destination to insert
     ///   - index: The index at which to insert the destination
     ///   - animated: Whether to animate the transition (default: true)
-    func insert(destination: Destination, at index: Int, animated: Bool = true) {
+    func insert<Destination: View>(destination: Destination, at index: Int, animated: Bool = true) {
         var tempPath = navigationPath
-        tempPath.insert(destination, at: index)
+        tempPath.insert(AnyDestination(destination), at: index)
         
         execute(animated) { [weak self] in
             self?.navigationPath = tempPath
@@ -307,10 +306,10 @@ public extension Router {
     /// - Parameters:
     ///   - destinations: The destinations to remove
     ///   - animated: Whether to animate the transition (default: true)
-    func remove(destinations: Destination..., animated: Bool = true) {
+    func remove<Destination: View>(destinations: Destination..., animated: Bool = true) {
         var tempPath = navigationPath
         destinations.forEach { destination in
-            if let index = tempPath.lastIndex(where: { $0.id == destination.id }) {
+            if let index = tempPath.lastIndex(where: { $0.id == AnyDestination(destination).id }) {
                 tempPath.remove(at: index)
             }
         }
@@ -325,8 +324,8 @@ public extension Router {
     /// - Parameters:
     ///   - destinations: The new navigation path
     ///   - animated: Whether to animate the transition (default: true)
-    func applyPath(_ destinations: [Destination], animated: Bool = true) {
-        let newPath = destinations.map { $0 }
+    func applyPath<Destination: View>(_ destinations: [Destination], animated: Bool = true) {
+        let newPath = destinations.map { AnyDestination($0) }
         
         execute(animated) { [weak self] in
             self?.navigationPath = newPath
@@ -344,7 +343,7 @@ internal extension Router {
     ///
     /// - Returns: A new child router instance
     func createChildRouter() -> Router {
-        let childRouter = Router<Destination>()
+        let childRouter = Router()
         self.childRouter = childRouter
         childRouter.parentRouter = self
         return childRouter

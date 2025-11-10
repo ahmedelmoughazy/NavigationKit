@@ -30,18 +30,35 @@ import SwiftUI
 /// }
 /// ```
 ///
-/// ## Type Requirements
-/// The `Destination` type must conform to:
-/// - `Routable`: For path management.
+/// - Note: This view automatically creates child routers for modal presentations
+/// - SeeAlso: `Router` for navigation state management
+/// A foundational navigation container that provides hierarchical navigation capabilities.
+///
+/// `BaseNavigation` serves as the core navigation wrapper that manages navigation stacks,
+/// modal presentations (sheets and full-screen covers), and router hierarchy. It automatically
+/// handles child router creation and maintains the navigation state throughout the app.
+///
+/// ## Features
+/// - **Hierarchical Navigation**: Supports nested navigation with automatic child router management
+/// - **Modal Presentations**: Built-in support for sheets and full-screen covers
+/// - **Debug Integration**: Automatic hierarchy logging for development builds
+/// - **Type Safety**: Type-safe navigation with compile-time checking
+///
+/// ## Usage
+/// ```swift
+/// BaseNavigation(router: mainRouter) {
+///     HomeView()
+/// }
+/// ```
 ///
 /// - Note: This view automatically creates child routers for modal presentations
 /// - SeeAlso: `Router` for navigation state management
-public struct BaseNavigation<Content: View, Destination: Routable>: View {
+public struct BaseNavigation<Content: View>: View {
     
     // MARK: - Properties
     
     /// The router managing navigation state for this navigation container.
-    @StateObject private var router: Router<Destination>
+    @StateObject private var router: Router
     
     /// The root content view builder for this navigation container.
     @ViewBuilder private let content: () -> Content
@@ -54,7 +71,7 @@ public struct BaseNavigation<Content: View, Destination: Routable>: View {
     ///   - router: The router instance to manage navigation state
     ///   - content: A view builder that provides the root content for this navigation container
     public init(
-        router: Router<Destination>,
+        router: Router,
         @ViewBuilder content: @escaping () -> Content
     ) {
         self._router = StateObject(wrappedValue: router)
@@ -66,7 +83,7 @@ public struct BaseNavigation<Content: View, Destination: Routable>: View {
     public var body: some View {
         NavigationStack(path: $router.navigationPath) {
             content()
-                .navigationDestination(for: Destination.self) { $0 }
+                .navigationDestination(for: AnyDestination.self) { $0.view }
         }
         .environmentObject(router.activeRouter)
         .sheet(item: $router.presentingSheet) {
@@ -100,20 +117,20 @@ private extension BaseNavigation {
     /// Creates the content for sheet presentations.
     /// - Parameter destination: The destination view to present in the sheet
     /// - Returns: A new BaseNavigation instance with a child router
-    func createSheetContent(for destination: Destination) -> some View {
+    func createSheetContent(for destination: AnyDestination) -> some View {
         let childRouter = router.createChildRouter()
-        return BaseNavigation<AnyView, Destination>(router: childRouter) {
-            AnyView(destination)
+        return BaseNavigation<AnyView>(router: childRouter) {
+            AnyView(destination.view)
         }
     }
     
     /// Creates the content for full-screen cover presentations.
     /// - Parameter destination: The destination view to present full-screen
     /// - Returns: A new BaseNavigation instance with a child router
-    func createFullScreenContent(for destination: Destination) -> some View {
+    func createFullScreenContent(for destination: AnyDestination) -> some View {
         let childRouter = router.createChildRouter()
-        return BaseNavigation<AnyView, Destination>(router: childRouter) {
-            AnyView(destination)
+        return BaseNavigation<AnyView>(router: childRouter) {
+            AnyView(destination.view)
         }
     }
     

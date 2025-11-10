@@ -46,9 +46,9 @@ Then add it to your target dependencies:
 
 ## Quick Start
 
-### 1. Mark Your Views as Routable
+### 1. Mark Your Views for Route Generation
 
-Use the `@Routable` macro to mark views that should be part of your navigation system:
+Use the `@Routable` macro to mark views that should be included in your generated route enum:
 
 ```swift
 import SwiftUI
@@ -89,7 +89,7 @@ swift package plugin generate-navigation --name Route
 This generates a `Route.swift` file with all your routable views:
 
 ```swift
-public enum Route: Routable, View {
+public enum Route: View {
     case homeView
     case profileView(userId: String)
     case settingsView
@@ -108,7 +108,7 @@ import NavigationKit
 
 @main
 struct MyApp: App {
-    @StateObject private var router = Router<Route>()
+    @StateObject private var router = Router()
     
     var body: some Scene {
         WindowGroup {
@@ -126,7 +126,7 @@ Access the router from any view using `@EnvironmentObject` and navigate programm
 
 ```swift
 struct HomeView: View {
-    @EnvironmentObject var router: Router<Route>
+    @EnvironmentObject var router: Router
     
     var body: some View {
         VStack {
@@ -278,18 +278,6 @@ router.alertItem = nil
 
 ## Advanced Features
 
-### Routable Protocol
-
-The `Routable` protocol is the foundation of NavigationKit. It combines several protocols to enable type-safe navigation:
-
-```swift
-public protocol Routable: Hashable, Equatable, Identifiable<String>, View {
-    var id: ID { get }
-}
-```
-
-Views can conform manually or use the `@Routable` macro for automatic conformance.
-
 ### Router Hierarchy
 
 NavigationKit automatically manages a hierarchy of routers:
@@ -346,11 +334,11 @@ The plugin:
 
 ## Best Practices
 
-1. **Use the @Routable Macro**: Prefer the macro over manual conformance for consistency and reduced boilerplate.
+1. **Use the @Routable Macro**: Mark all views you want in your route enum with `@Routable` for automatic code generation.
 
 2. **Environment Objects**: Views can use `@EnvironmentObject` for dependencies—these are automatically excluded from route parameters.
 
-3. **Organized Navigation**: Create a dedicated `Route` enum per major feature or module for better organization.
+3. **Organized Navigation**: Create a dedicated route enum per major feature or module for better organization in large apps.
 
 4. **State Management**: Keep navigation state separate from view state—the router manages navigation, views manage content.
 
@@ -360,12 +348,11 @@ The plugin:
 
 NavigationKit is built on several key components:
 
-- **Router**: Observable state manager with Combine publishers
+- **Router**: Observable state manager with Combine publishers using type erasure
 - **BaseNavigation**: SwiftUI container with NavigationStack integration
-- **Routable Protocol**: Type requirements for navigation destinations
-- **@Routable Macro**: Swift macro for automatic conformance
-- **RouteGenerator**: Build-time code generator
-- **GenerateRoutes Plugin**: SPM command plugin
+- **@Routable Macro**: Swift macro for marking views for code generation
+- **RouteGenerator**: Build-time code generator that scans for `@Routable` views
+- **GenerateRoutes Plugin**: SPM command plugin for route generation
 
 ## Examples
 
@@ -374,7 +361,7 @@ NavigationKit is built on several key components:
 ```swift
 @Routable
 struct ProductListView: View {
-    @EnvironmentObject var router: Router<Route>
+    @EnvironmentObject var router: Router
     
     var body: some View {
         List(products) { product in
@@ -394,7 +381,7 @@ struct ProductListView: View {
 @Routable
 struct ProductDetailView: View {
     let productId: String
-    @EnvironmentObject var router: Router<Route>
+    @EnvironmentObject var router: Router
     
     var body: some View {
         VStack {
@@ -416,7 +403,7 @@ struct ProductDetailView: View {
 
 ```swift
 struct LoginView: View {
-    @EnvironmentObject var router: Router<Route>
+    @EnvironmentObject var router: Router
     @State private var isLoggedIn = false
     
     var body: some View {

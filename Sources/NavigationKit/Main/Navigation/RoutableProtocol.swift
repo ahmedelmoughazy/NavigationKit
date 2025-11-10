@@ -10,23 +10,22 @@ import SwiftUI
 
 // MARK: - Routable Protocol
 
-/// A protocol that marks SwiftUI views as routable within the navigation system.
+/// A protocol that marks SwiftUI views for automatic route generation.
 ///
-/// Views conforming to `Routable` are eligible for automatic route generation and
-/// can be used as destinations in the navigation system. The protocol serves as a
-/// marker interface that enables the code generation tools to identify and process
-/// views for inclusion in the navigation route enum.
+/// **Note:** This protocol is deprecated and no longer required for navigation. 
+/// The Router now uses type erasure and works directly with any View that conforms 
+/// to Hashable and Identifiable. This protocol is kept for backward compatibility 
+/// and will be removed in a future version.
 ///
 /// ## Automatic Route Generation
 ///
-/// When a view conforms to `Routable`, the RouteGenerator build plugin
-/// will automatically:
-/// - Include the view in the generated `Route` enum
+/// The RouteGenerator build plugin scans for views marked with `@Routable` macro:
+/// - Include the view in the generated route enum
 /// - Generate appropriate enum cases with required parameters
 /// - Create view instantiation logic
 /// - Handle navigation path management
 ///
-/// ## Manual Conformance
+/// ## Manual Conformance (Deprecated)
 ///
 /// Views can conform to `Routable` manually:
 /// ```swift
@@ -37,9 +36,9 @@ import SwiftUI
 /// }
 /// ```
 ///
-/// ## Macro-Based Conformance
+/// ## Macro-Based Conformance (Recommended)
 ///
-/// The preferred approach is using the `@Routable` macro:
+/// Use the `@Routable` macro for code generation:
 /// ```swift
 /// @Routable
 /// struct ProfileView: View {
@@ -57,13 +56,12 @@ import SwiftUI
 /// - Should have a public or internal access level for route generation
 /// - Any required initializer parameters will be included in the generated routes
 /// - Environment objects and computed properties are automatically excluded
-/// - Includes `==` operator and `hash(into:)` function for `Hashable` and `Equatable` conformance
 ///
 /// ## Generated Routes
 ///
 /// For a view with parameters, the generator creates:
 /// ```swift
-/// enum Route {
+/// enum Route: View {
 ///     case profileView(userId: String)
 ///     
 ///     var body: some View {
@@ -78,6 +76,7 @@ import SwiftUI
 /// - Note: This protocol works in conjunction with the RouteGenerator build plugin
 /// - SeeAlso: `@Routable` macro for automatic conformance
 /// - SeeAlso: `Router` for navigation state management
+@available(*, deprecated, message: "Routable protocol is no longer required. Router now works with any View conforming to Hashable and Identifiable.")
 public protocol Routable: Hashable, Equatable, Identifiable<String>, View {
     var id: ID { get }
 }
