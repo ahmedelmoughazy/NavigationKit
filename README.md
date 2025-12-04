@@ -87,7 +87,7 @@ import NavigationKit
 
 @main
 struct MyApp: App {
-    @StateObject private var router = Router()
+    private let router = Router()
     
     var body: some Scene {
         WindowGroup {
@@ -220,15 +220,16 @@ struct MyView: View {
     
     var body: some View {
         Button("Show Alert") {
-            router.alertItem = AlertItem(
-                title: "Confirmation",
-                message: "Are you sure?",
-                actionButtons: [
-                    AlertActionButton(title: "Confirm", style: .primary) {
-                        // Handle confirmation
-                    },
-                    AlertActionButton(title: "Cancel", style: .cancel)
-                ]
+            router.presentAlert(alertItem: AlertItem(
+                    title: "Confirmation",
+                    message: "Are you sure?",
+                    actionButtons: [
+                        AlertActionButton(title: "Confirm", style: .primary) {
+                            // Handle confirmation
+                        },
+                        AlertActionButton(title: "Cancel", style: .cancel)
+                    ]
+                )
             )
         }
     }
@@ -247,27 +248,10 @@ NavigationKit provides four button styles to match your alert's intent:
 #### Dismissing Alerts
 
 Alerts are automatically dismissed when:
-- The user taps any action button
-- You set `router.alertItem = nil` programmatically
-
-```swift
-// Manually dismiss an alert
-router.alertItem = nil
-```
+- The user taps any action button.
+- You call `router.dismissAlert()`.
 
 ## Advanced Features
-
-### Router Hierarchy
-
-Access different routers in the hierarchy when needed:
-
-```swift
-// Get the root router
-let root = router.rootRouter
-
-// Get the active router (useful in modal contexts)
-let active = router.activeRouter
-```
 
 ### Debug Logging
 
