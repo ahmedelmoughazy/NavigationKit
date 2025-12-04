@@ -1,6 +1,6 @@
 # NavigationKit
 
-A powerful, type-safe navigation system for SwiftUI applications that provides programmatic navigation with hierarchical state management and automatic route generation.
+A powerful, type-safe navigation system for SwiftUI applications that provides programmatic navigation with hierarchical state management.
 
 [![Swift](https://img.shields.io/badge/Swift-6.1+-orange.svg)](https://swift.org)
 [![Platform](https://img.shields.io/badge/Platform-iOS%2016.0%2B-blue.svg)](https://developer.apple.com/swift)
@@ -12,7 +12,6 @@ A powerful, type-safe navigation system for SwiftUI applications that provides p
 - 🔄 **Hierarchical Navigation**: Automatic parent-child router management
 - 📱 **Modal Presentations**: Built-in support for sheets and full-screen covers
 - 🎯 **Programmatic Control**: Push, pop, present, and dismiss from anywhere
-- 🤖 **Automatic Code Generation**: Generate route enums from annotated views
 - 🔍 **Debug Support**: Comprehensive hierarchy logging for development
 - ⚡️ **Reactive Updates**: Combine publishers for navigation state changes
 - 🎨 **Animation Control**: Optional animation for all navigation actions
@@ -46,9 +45,9 @@ Then add it to your target dependencies:
 
 ## Quick Start
 
-### 1. Mark Your Views as Routable
+### 1. Create Your Views
 
-Use the `@Routable` macro to mark views that should be part of your navigation system:
+Mark your views with the `@Routable` macro:
 
 ```swift
 import SwiftUI
@@ -78,45 +77,7 @@ struct SettingsView: View {
 }
 ```
 
-### 2. Generate Routes
-
-Run the route generation plugin to create your Route enum:
-
-```bash
-swift package plugin generate-navigation --name Route
-```
-
-This generates a `Route.swift` file with all your routable views:
-
-```swift
-public enum Route: Routable, View {
-    case homeView
-    case profileView(userId: String)
-    case settingsView
-    
-    public var id: String {
-        switch self {
-        case .homeView: return "homeView"
-        case .profileView: return "profileView"
-        case .settingsView: return "settingsView"
-        }
-    }
-    
-    @ViewBuilder
-    public var body: some View {
-        switch self {
-        case .homeView:
-            HomeView()
-        case .profileView(let userId):
-            ProfileView(userId: userId)
-        case .settingsView:
-            SettingsView()
-        }
-    }
-}
-```
-
-### 3. Set Up Navigation
+### 2. Set Up Navigation
 
 Create a router and wrap your root view with `BaseNavigation`:
 
@@ -131,14 +92,14 @@ struct MyApp: App {
     var body: some Scene {
         WindowGroup {
             BaseNavigation(router: router) {
-                Route.homeView
+                HomeView()
             }
         }
     }
 }
 ```
 
-### 4. Navigate
+### 3. Navigate
 
 Access the router from any view using `@EnvironmentObject` and navigate programmatically:
 
@@ -149,11 +110,11 @@ struct HomeView: View {
     var body: some View {
         VStack {
             Button("Go to Profile") {
-                router.push(destination: .profileView(userId: "123"))
+                router.push(destination: ProfileView(userId: "123"))
             }
             
             Button("Open Settings as Sheet") {
-                router.present(destination: .settingsView, as: .sheet)
+                router.present(destination: SettingsView(), as: .sheet)
             }
         }
     }
@@ -168,13 +129,13 @@ struct HomeView: View {
 
 ```swift
 // Push a new destination
-router.push(destination: .profileView(userId: "123"))
+router.push(destination: ProfileView(userId: "123"))
 
 // Pop the current view
 router.pop()
 
 // Pop to a specific destination
-router.pop(to: .homeView)
+router.pop(to: HomeView())
 
 // Pop to presentation (clear current stack)
 router.popToPresentation()
@@ -187,10 +148,10 @@ router.popAll()
 
 ```swift
 // Present as sheet
-router.present(destination: .settingsView, as: .sheet)
+router.present(destination: SettingsView(), as: .sheet)
 
 // Present as full-screen cover
-router.present(destination: .detailView, as: .fullScreenCover)
+router.present(destination: DetailView(), as: .fullScreenCover)
 
 // Dismiss current modal
 router.dismiss()
@@ -200,13 +161,13 @@ router.dismiss()
 
 ```swift
 // Insert destination at specific index
-router.insert(destination: .homeView, at: 0)
+router.insert(destination: HomeView(), at: 0)
 
 // Remove specific destinations
-router.remove(destinations: .profileView(userId: "123"))
+router.remove(destinations: ProfileView(userId: "123"))
 
 // Replace entire navigation path
-router.applyPath([.homeView, .profileView(userId: "456")])
+router.applyPath([HomeView(), ProfileView(userId: "456")])
 ```
 
 #### Animation Control
@@ -318,29 +279,15 @@ router.debugPrintCompleteHierarchy()
 #endif
 ```
 
-### Code Generation Plugin
-
-The route generator supports custom route names:
-
-```bash
-# Generate with custom name
-swift package plugin generate-navigation --name AppRoute
-
-# Generate default Route enum
-swift package plugin generate-navigation
-```
-
 ## Best Practices
 
-1. **Use the @Routable Macro**: Prefer the macro over manual conformance for consistency and reduced boilerplate.
+1. **Use @Routable Macro**: Apply the macro to all views you want to navigate to.
 
-2. **Environment Objects**: Views can use `@EnvironmentObject` for dependencies—these are automatically excluded from route parameters.
+2. **Inject Router**: Access the router via `@EnvironmentObject` in views that need navigation.
 
-3. **Organized Navigation**: Create a dedicated `Route` enum per major feature or module for better organization.
+3. **State Management**: Keep navigation state separate from view state—the router manages navigation, views manage content.
 
-4. **State Management**: Keep navigation state separate from view state—the router manages navigation, views manage content.
-
-5. **Testing**: Use the router's published properties to test navigation flows without UI.
+4. **Testing**: Use the router's published properties to test navigation flows without UI.
 
 ## Examples
 
@@ -354,13 +301,13 @@ struct ProductListView: View {
     var body: some View {
         List(products) { product in
             Button(product.name) {
-                router.push(destination: .productDetailView(productId: product.id))
+                router.push(destination: ProductDetailView(productId: product.id))
             }
         }
         .navigationTitle("Products")
         .toolbar {
             Button("Cart") {
-                router.present(destination: .cartView, as: .sheet)
+                router.present(destination: CartView(), as: .sheet)
             }
         }
     }
@@ -378,8 +325,8 @@ struct ProductDetailView: View {
             Button("Buy Now") {
                 // Complete purchase then navigate to confirmation
                 router.applyPath([
-                    .productListView,
-                    .orderConfirmationView(orderId: "456")
+                    ProductListView(),
+                    OrderConfirmationView(orderId: "456")
                 ])
             }
         }

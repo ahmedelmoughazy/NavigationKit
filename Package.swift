@@ -15,11 +15,13 @@ let package = Package(
         .library(
             name: "NavigationKit",
             targets: ["NavigationKit"]
-        ),
-        .plugin(
-            name: "GenerateRoutes",
-            targets: ["Generate routes"]
         )
+        //,
+        // Temporarily disabled - uncomment to re-enable route generation
+        // .plugin(
+        //     name: "GenerateRoutes",
+        //     targets: ["Generate routes"]
+        // )
     ],
     dependencies: [
         .package(
