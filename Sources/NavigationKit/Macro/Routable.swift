@@ -8,15 +8,12 @@
 
 // MARK: - Navigation Macros
 
-/// A macro that marks a SwiftUI View for automatic route generation.
+/// A macro that marks a SwiftUI View as routable within the navigation system.
 ///
-/// This macro enables views to be discovered by the RouteGenerator build plugin
-/// and included in the generated route enum. It provides automatic conformance to 
-/// required protocols (Hashable, Identifiable) that enable type-safe navigation.
-///
-/// **Note:** The `Routable` protocol conformance added by this macro is deprecated 
-/// but kept for backward compatibility. The Router now works with any View through 
-/// type erasure.
+/// This macro automatically adds `Routable` protocol conformance to the annotated view,
+/// enabling it to be used with the navigation system's automatic route generation.
+/// The code generator will scan for views marked with this macro and include them
+/// in the generated `Route` enum.
 ///
 /// ## Usage
 /// ```swift
@@ -35,15 +32,21 @@
 ///
 /// ## Generated Code
 /// The macro generates:
-/// - Protocol conformance for `Hashable`, `Equatable`, and `Identifiable`
+/// - `Routable` protocol conformance
 /// - `==` operator for equality comparison based on a unique `id`
 /// - `hash(into:)` function for hashing based on the same `id`
 ///
 /// ## Code Generation
 /// The RouteGenerator plugin scans for `@Routable` views and creates:
 /// ```swift
-/// enum Route: View {
+/// enum Route: Routable, View {
 ///     case homeView
+///     
+///     public var id: String {
+///         switch self {
+///         case .homeView: return "homeView"
+///         }
+///     }
 ///     
 ///     var body: some View {
 ///         switch self {
@@ -55,6 +58,7 @@
 /// ```
 ///
 /// - Note: This macro works in conjunction with the RouteGenerator build plugin
+/// - SeeAlso: `Routable` protocol for manual conformance
 /// - SeeAlso: `Router` for navigation state management
 //@attached(extension, conformances: Routable)
 @attached(extension, conformances: Routable, names: named(==), named(hash(into:)))

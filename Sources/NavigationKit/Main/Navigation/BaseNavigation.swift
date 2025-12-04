@@ -21,7 +21,7 @@ import SwiftUI
 /// - **Hierarchical Navigation**: Supports nested navigation with automatic child router management
 /// - **Modal Presentations**: Built-in support for sheets and full-screen covers
 /// - **Debug Integration**: Automatic hierarchy logging for development builds
-/// - **Type Safety**: Strong typing for destinations with protocol requirements
+/// - **Type Safety**: Strong typing for `Routable` destinations
 ///
 /// ## Usage
 /// ```swift
@@ -30,29 +30,16 @@ import SwiftUI
 /// }
 /// ```
 ///
-/// - Note: This view automatically creates child routers for modal presentations
-/// - SeeAlso: `Router` for navigation state management
-/// A foundational navigation container that provides hierarchical navigation capabilities.
-///
-/// `BaseNavigation` serves as the core navigation wrapper that manages navigation stacks,
-/// modal presentations (sheets and full-screen covers), and router hierarchy. It automatically
-/// handles child router creation and maintains the navigation state throughout the app.
-///
-/// ## Features
-/// - **Hierarchical Navigation**: Supports nested navigation with automatic child router management
-/// - **Modal Presentations**: Built-in support for sheets and full-screen covers
-/// - **Debug Integration**: Automatic hierarchy logging for development builds
-/// - **Type Safety**: Type-safe navigation with compile-time checking
-///
-/// ## Usage
-/// ```swift
-/// BaseNavigation(router: mainRouter) {
-///     HomeView()
-/// }
-/// ```
+/// ## Type Erasure Integration
+/// `BaseNavigation` works seamlessly with the Router's type erasure system through
+/// `AnyDestination`, allowing navigation between different `Routable` view types
+/// within a single navigation hierarchy. Child routers are automatically created
+/// for modal presentations, maintaining the navigation state throughout the app.
 ///
 /// - Note: This view automatically creates child routers for modal presentations
 /// - SeeAlso: `Router` for navigation state management
+/// - SeeAlso: `Routable` protocol for view requirements
+/// - SeeAlso: `AnyDestination` for type erasure implementation
 public struct BaseNavigation<Content: View>: View {
     
     // MARK: - Properties

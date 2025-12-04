@@ -23,6 +23,7 @@ import Combine
 /// - **Hierarchical Management**: Automatic child router creation for modal presentations
 /// - **Reactive Updates**: Published properties and Combine publishers for state changes
 /// - **Animation Control**: Optional animation control for all navigation actions
+/// - **Type Safety**: Strongly-typed routing through the `Routable` protocol
 ///
 /// ## Basic Usage
 /// ```swift
@@ -43,8 +44,15 @@ import Combine
 /// - Child routers are created automatically for modal presentations
 /// - Navigation state changes propagate through the hierarchy
 ///
-/// - Note: Destination views must conform to Hashable, Identifiable, and View protocols
+/// ## Type Erasure
+/// Internally, the Router uses `AnyDestination` to provide type erasure, allowing
+/// heterogeneous `Routable` view types to be stored in the same navigation path.
+/// This enables flexible navigation while maintaining type safety through the
+/// `Routable` protocol.
+///
+/// - Note: All destination views must conform to the `Routable` protocol
 /// - SeeAlso: `BaseNavigation` for the SwiftUI integration
+/// - SeeAlso: `Routable` protocol for view requirements
 /// - SeeAlso: `Presentation` for modal presentation options
 public final class Router: ObservableObject {
     
@@ -165,7 +173,7 @@ public extension Router {
     /// - Parameters:
     ///   - destination: The destination to push
     ///   - animated: Whether to animate the transition (default: true)
-    func push<Destination: View>(destination: Destination, animated: Bool = true) {
+    func push<Destination: Routable>(destination: Destination, animated: Bool = true) {
         execute(animated) { [weak self] in
             self?.navigationPath.append(AnyDestination(destination))
         }
@@ -187,7 +195,7 @@ public extension Router {
     /// - Parameters:
     ///   - destination: The destination to pop back to
     ///   - animated: Whether to animate the transition (default: true)
-    func pop<Destination: View>(to destination: Destination, animated: Bool = true) {
+    func pop<Destination: Routable>(to destination: Destination, animated: Bool = true) {
         if let indexOfDestination = navigationPath.lastIndex(where: { $0.id == AnyDestination(destination).id }) {
             let removeStart = indexOfDestination + 1
             if removeStart < navigationPath.count {
@@ -232,7 +240,7 @@ public extension Router {
     ///   - destination: The destination to present
     ///   - presentationType: The type of modal presentation
     ///   - animated: Whether to animate the transition (default: true)
-    func present<Destination: View>(destination: Destination, as presentationType: Presentation, animated: Bool = true) {
+    func present<Destination: Routable>(destination: Destination, as presentationType: Presentation, animated: Bool = true) {
         execute(animated) { [weak self] in
             switch presentationType {
             case .sheet:
@@ -292,7 +300,7 @@ public extension Router {
     ///   - destination: The destination to insert
     ///   - index: The index at which to insert the destination
     ///   - animated: Whether to animate the transition (default: true)
-    func insert<Destination: View>(destination: Destination, at index: Int, animated: Bool = true) {
+    func insert<Destination: Routable>(destination: Destination, at index: Int, animated: Bool = true) {
         var tempPath = navigationPath
         tempPath.insert(AnyDestination(destination), at: index)
         
@@ -306,7 +314,7 @@ public extension Router {
     /// - Parameters:
     ///   - destinations: The destinations to remove
     ///   - animated: Whether to animate the transition (default: true)
-    func remove<Destination: View>(destinations: Destination..., animated: Bool = true) {
+    func remove<Destination: Routable>(destinations: Destination..., animated: Bool = true) {
         var tempPath = navigationPath
         destinations.forEach { destination in
             if let index = tempPath.lastIndex(where: { $0.id == AnyDestination(destination).id }) {
@@ -324,7 +332,7 @@ public extension Router {
     /// - Parameters:
     ///   - destinations: The new navigation path
     ///   - animated: Whether to animate the transition (default: true)
-    func applyPath<Destination: View>(_ destinations: [Destination], animated: Bool = true) {
+    func applyPath<Destination: Routable>(_ destinations: [Destination], animated: Bool = true) {
         let newPath = destinations.map { AnyDestination($0) }
         
         execute(animated) { [weak self] in

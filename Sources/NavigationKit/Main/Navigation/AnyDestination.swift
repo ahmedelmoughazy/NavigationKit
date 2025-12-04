@@ -1,24 +1,25 @@
 import SwiftUI
 
-/// A type-erased wrapper for navigation destinations.
+/// A type-erased wrapper for navigation destinations that conform to `Routable`.
 ///
 /// `AnyDestination` provides type erasure for SwiftUI views used in navigation,
 /// allowing the Router to manage heterogeneous destination types in a single
-/// navigation path. It wraps any View and provides identity and hashability
+/// navigation path. It wraps any `Routable` view and provides identity and hashability
 /// required for NavigationStack integration.
 ///
 /// ## Purpose
-/// - Enables storing different view types in the same navigation path array
-/// - Provides unique identification for navigation state management
+/// - Enables storing different `Routable` view types in the same navigation path array
+/// - Provides unique identification through the `Routable` protocol's `id` property
 /// - Supports presentation customization through detents
 ///
 /// ## Usage
 /// This type is used internally by the Router and is typically not
 /// created directly by application code. The Router automatically wraps
-/// views when they are pushed or presented.
+/// `Routable` views when they are pushed or presented.
 ///
-/// - Note: Identity is based on the view's type, not its content or parameters
+/// - Note: Identity comes from the `Routable` protocol's `id` property
 /// - SeeAlso: `Router` for navigation state management
+/// - SeeAlso: `Routable` protocol for view requirements
 struct AnyDestination: Hashable, Identifiable {
     /// Unique identifier based on the destination view's type.
     let id: String
@@ -34,8 +35,8 @@ struct AnyDestination: Hashable, Identifiable {
     /// - Parameters:
     ///   - route: The view to wrap as a navigation destination
     ///   - presentationDetents: The presentation detents for modal presentations (default: .large)
-    init<R: View>(_ route: R, presentationDetents: Set<PresentationDetent> = [.large]) {
-        self.id = String(describing: type(of: route).self)
+    init<R: Routable>(_ route: R, presentationDetents: Set<PresentationDetent> = [.large]) {
+        self.id = route.id
         self.view = AnyView(route)
         self.presentationDetents = presentationDetents
     }

@@ -46,9 +46,9 @@ Then add it to your target dependencies:
 
 ## Quick Start
 
-### 1. Mark Your Views for Route Generation
+### 1. Mark Your Views as Routable
 
-Use the `@Routable` macro to mark views that should be included in your generated route enum:
+Use the `@Routable` macro to mark views that should be part of your navigation system:
 
 ```swift
 import SwiftUI
@@ -89,12 +89,30 @@ swift package plugin generate-navigation --name Route
 This generates a `Route.swift` file with all your routable views:
 
 ```swift
-public enum Route: View {
+public enum Route: Routable, View {
     case homeView
     case profileView(userId: String)
     case settingsView
     
-    // ... generated code for view instantiation
+    public var id: String {
+        switch self {
+        case .homeView: return "homeView"
+        case .profileView: return "profileView"
+        case .settingsView: return "settingsView"
+        }
+    }
+    
+    @ViewBuilder
+    public var body: some View {
+        switch self {
+        case .homeView:
+            HomeView()
+        case .profileView(let userId):
+            ProfileView(userId: userId)
+        case .settingsView:
+            SettingsView()
+        }
+    }
 }
 ```
 
@@ -280,37 +298,24 @@ router.alertItem = nil
 
 ### Router Hierarchy
 
-NavigationKit automatically manages a hierarchy of routers:
-
-- **Root Router**: Manages the main navigation stack
-- **Child Routers**: Created automatically for modal presentations
-- **Active Router**: Always points to the currently active router in the hierarchy
+Access different routers in the hierarchy when needed:
 
 ```swift
 // Get the root router
 let root = router.rootRouter
 
-// Get the active router (for modal context)
+// Get the active router (useful in modal contexts)
 let active = router.activeRouter
 ```
 
 ### Debug Logging
 
-In DEBUG builds, NavigationKit provides comprehensive hierarchy logging:
+In DEBUG builds, you can log the navigation hierarchy:
 
 ```swift
 #if DEBUG
 router.debugPrintCompleteHierarchy()
 #endif
-```
-
-Output example:
-```
-🎯 Router#a1b2c
-  📱 Path: [homeView, profileView]
-  📄 Sheet: settingsView
-  └── 🎯 Router#d3e4f
-      📱 Path: [detailView]
 ```
 
 ### Code Generation Plugin
@@ -325,34 +330,17 @@ swift package plugin generate-navigation --name AppRoute
 swift package plugin generate-navigation
 ```
 
-The plugin:
-- Scans all Swift files for `@Routable` views
-- Extracts view parameters from initializers
-- Generates enum cases with associated values
-- Creates view instantiation logic
-- Handles default parameters and environment objects
-
 ## Best Practices
 
-1. **Use the @Routable Macro**: Mark all views you want in your route enum with `@Routable` for automatic code generation.
+1. **Use the @Routable Macro**: Prefer the macro over manual conformance for consistency and reduced boilerplate.
 
 2. **Environment Objects**: Views can use `@EnvironmentObject` for dependencies—these are automatically excluded from route parameters.
 
-3. **Organized Navigation**: Create a dedicated route enum per major feature or module for better organization in large apps.
+3. **Organized Navigation**: Create a dedicated `Route` enum per major feature or module for better organization.
 
 4. **State Management**: Keep navigation state separate from view state—the router manages navigation, views manage content.
 
 5. **Testing**: Use the router's published properties to test navigation flows without UI.
-
-## Architecture
-
-NavigationKit is built on several key components:
-
-- **Router**: Observable state manager with Combine publishers using type erasure
-- **BaseNavigation**: SwiftUI container with NavigationStack integration
-- **@Routable Macro**: Swift macro for marking views for code generation
-- **RouteGenerator**: Build-time code generator that scans for `@Routable` views
-- **GenerateRoutes Plugin**: SPM command plugin for route generation
 
 ## Examples
 
