@@ -1,0 +1,39 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Destination One" : {
+
+    },
+    "Destination Two" : {
+
+    },
+    "Details" : {
+
+    },
+    "Dismiss" : {
+
+    },
+    "Go to destination one" : {
+
+    },
+    "Pop to Root" : {
+
+    },
+    "Present Details" : {
+
+    },
+    "Root view" : {
+
+    },
+    "Show Alert" : {
+
+    },
+    "Show Destination Three" : {
+
+    },
+    "Show Destination Two" : {
+
+    }
+  },
+  "version" : "1.0"
+}
