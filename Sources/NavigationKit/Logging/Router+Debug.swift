@@ -6,9 +6,20 @@
 //  Copyright © 2025 Ahmed Elmoghazy. All rights reserved.
 //
 
-#if DEBUG
 import Foundation
 import Combine
+
+// MARK: - Logging Style
+
+/// Defines the output format for router hierarchy logging.
+public enum RouterLoggingStyle {
+    /// Logging is disabled
+    case disabled
+    /// Hierarchical tree view with indentation and connectors
+    case hierarchical
+    /// Flat array view with all routers listed sequentially
+    case flat
+}
 
 // MARK: - Debug Constants
 private enum DebugConstants {
@@ -34,10 +45,15 @@ extension Router {
     /// Prints the complete router hierarchy starting from the root router.
     ///
     /// This method traverses up to the root router and then prints the entire
-    /// hierarchy tree showing all active routers, their navigation paths,
+    /// hierarchy showing all active routers, their navigation paths,
     /// and presented content (sheets/fullscreen).
     ///
-    /// Example output:
+    /// The output format depends on the `loggingStyle` property:
+    /// - `.disabled`: No output
+    /// - `.hierarchical`: Tree view with indentation
+    /// - `.flat`: Array view with sequential listing
+    ///
+    /// Example hierarchical output:
     /// ```
     /// 🎯 Router#a1b2c
     ///   📱 Path: [home, profile]
@@ -45,13 +61,65 @@ extension Router {
     ///   └── 🎯 Router#d3e4f
     ///       📱 Path: [details]
     /// ```
+    ///
+    /// Example flat output:
+    /// ```
+    /// Routers: [
+    ///   🎯 Router#a1b2c | 📱 Path: [home, profile] | 📄 Sheet: settings
+    ///   🎯 Router#d3e4f | 📱 Path: [details]
+    /// ]
+    /// ```
     func debugPrintCompleteHierarchy() {
-        rootRouter.debugPrintHierarchy()
+        switch rootRouter.loggingStyle {
+        case .disabled:
+            return
+        case .hierarchical:
+            rootRouter.debugPrintHierarchy()
+        case .flat:
+            rootRouter.debugPrintFlatHierarchy()
+        }
     }
 }
 
 // MARK: - Private Debug Methods
 private extension Router {
+    
+    /// Prints the router hierarchy as a flat array.
+    func debugPrintFlatHierarchy() {
+        var routers: [Router] = []
+        collectRouters(into: &routers)
+        
+        print("Routers: [")
+        for router in routers {
+            let idSuffix = router.extractRouterIdSuffix()
+            var components: [String] = ["\(DebugConstants.routerIcon) Router#\(idSuffix)"]
+            
+            if !router.navigationPath.isEmpty {
+                let pathIds = router.navigationPath.map { $0.id }
+                components.append("\(DebugConstants.pathIcon) Path: \(pathIds)")
+            }
+            
+            if let sheet = router.presentingSheet {
+                components.append("\(DebugConstants.sheetIcon) Sheet: \(sheet.id)")
+            }
+            
+            if let fullScreen = router.presentingFullScreen {
+                components.append("\(DebugConstants.fullScreenIcon) FullScreen: \(fullScreen.id)")
+            }
+            
+            print("  " + components.joined(separator: " | "))
+        }
+        print("]")
+    }
+    
+    /// Collects all routers in the hierarchy into an array.
+    /// - Parameter routers: The array to collect routers into
+    func collectRouters(into routers: inout [Router]) {
+        routers.append(self)
+        if let child = childRouter {
+            child.collectRouters(into: &routers)
+        }
+    }
     
     /// Recursively prints the router hierarchy with proper tree formatting.
     /// - Parameters:
@@ -113,4 +181,3 @@ private extension Router {
         }
     }
 }
-#endif

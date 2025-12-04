@@ -271,12 +271,64 @@ let active = router.activeRouter
 
 ### Debug Logging
 
-In DEBUG builds, you can log the navigation hierarchy:
+NavigationKit provides powerful logging capabilities to help debug navigation flows.
+
+#### Configuring Logging
+
+Set the logging style when creating the router:
 
 ```swift
-#if DEBUG
+// Disable logging (default)
+let router = Router(loggingStyle: .disabled)
+
+// Enable hierarchical logging (tree view)
+let router = Router(loggingStyle: .hierarchical)
+
+// Enable flat logging (array view)
+let router = Router(loggingStyle: .flat)
+```
+
+When logging is enabled, the navigation hierarchy is automatically printed whenever navigation state changes.
+
+#### Logging Styles
+
+**Disabled** (default) - No logging output
+
+**Hierarchical** - Tree view with indentation:
+```
+🎯 Router#a1b2c
+  📱 Path: [home, profile]
+  📄 Sheet: settings
+  └── 🎯 Router#d3e4f
+      📱 Path: [details]
+```
+
+**Flat** - Array view with sequential listing:
+```
+Routers: [
+  🎯 Router#a1b2c | 📱 Path: [home, profile] | 📄 Sheet: settings
+  🎯 Router#d3e4f | 📱 Path: [details]
+]
+```
+
+#### Dynamic Configuration
+
+You can change the logging style at any time:
+
+```swift
+// Switch to hierarchical logging
+router.loggingStyle = .hierarchical
+
+// Disable logging
+router.loggingStyle = .disabled
+```
+
+#### Manual Logging
+
+You can also manually trigger logging at any time:
+
+```swift
 router.debugPrintCompleteHierarchy()
-#endif
 ```
 
 ## Best Practices

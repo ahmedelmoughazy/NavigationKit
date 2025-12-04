@@ -122,10 +122,8 @@ private extension BaseNavigation {
     }
     
     /// Logs the current navigation hierarchy for debugging purposes.
-    /// Only active in DEBUG builds through the router's debug functionality.
+    /// Respects the router's loggingEnabled configuration.
     func logNavigationHierarchy() {
-        #if DEBUG
         router.debugPrintCompleteHierarchy()
-        #endif
     }
 }

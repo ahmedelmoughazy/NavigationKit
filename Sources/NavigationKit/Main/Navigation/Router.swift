@@ -27,7 +27,11 @@ import Combine
 ///
 /// ## Basic Usage
 /// ```swift
+/// // Create router with logging disabled (default)
 /// let router = Router()
+///
+/// // Or enable logging with hierarchical output
+/// let router = Router(loggingStyle: .hierarchical)
 ///
 /// // Stack navigation
 /// router.push(destination: .home)
@@ -59,9 +63,16 @@ public final class Router: ObservableObject {
     // MARK: - Initialization
     
     /// Creates a new router instance.
-    public init() {}
+    ///
+    /// - Parameter loggingStyle: The output format for logging (disabled, hierarchical, or flat)
+    public init(loggingStyle: RouterLoggingStyle = .disabled) {
+        self.loggingStyle = loggingStyle
+    }
     
     // MARK: - Properties
+    
+    /// The output format for debug logging.
+    public var loggingStyle: RouterLoggingStyle
     
     /// The current navigation path as an array of destinations.
     @Published internal var navigationPath: [AnyDestination] = [] {
