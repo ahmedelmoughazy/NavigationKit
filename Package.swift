@@ -1,4 +1,4 @@
-// swift-tools-version: 6.1
+// swift-tools-version: 5.9
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -16,12 +16,6 @@ let package = Package(
             name: "NavigationKit",
             targets: ["NavigationKit"]
         )
-        //,
-        // Temporarily disabled - uncomment to re-enable route generation
-        // .plugin(
-        //     name: "GenerateRoutes",
-        //     targets: ["Generate routes"]
-        // )
     ],
     dependencies: [
         .package(
@@ -48,23 +42,6 @@ let package = Package(
                     package: "swift-syntax"
                 )
             ]
-        ),
-        .executableTarget(
-            name: "RouteGenerator"
-        ),
-        .plugin(
-            name: "Generate routes",
-            capability: .command(
-                intent: .custom(
-                    verb: "generate-navigation",
-                    description: "Generate navigation routes from @Routable views"
-                ),
-                permissions: [
-                    .writeToPackageDirectory(reason: "Create file for navigation route")
-                ]
-            ),
-            dependencies: ["RouteGenerator"],
-            path: "Plugins/GenerateRoutes"
         ),
         .testTarget(
             name: "NavigationKitTests",
