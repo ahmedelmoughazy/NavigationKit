@@ -10,19 +10,31 @@
     "Details" : {
 
     },
-    "Go to destination one" : {
+    "First Stop" : {
 
     },
-    "Present Alert" : {
+    "Home" : {
 
     },
-    "Present Details" : {
+    "Modal Details" : {
 
     },
-    "Root view" : {
+    "Navigate within a modal presentation" : {
 
     },
-    "Show Destination Two" : {
+    "Navigation Demo" : {
+
+    },
+    "NavigationKit" : {
+
+    },
+    "Ready to present a modal?" : {
+
+    },
+    "Second Stop" : {
+
+    },
+    "You're at the first destination" : {
 
     }
   },

@@ -14,29 +14,53 @@ struct Details: View {
     let text: String
     
     var body: some View {
-        VStack {
-            Button("Go to destination one") {
-                router.push(destination: DestinationOne())
+        VStack(spacing: 25) {
+            VStack(spacing: 12) {
+                Image(systemName: "doc.text.fill")
+                    .font(.system(size: 60))
+                    .foregroundStyle(.purple)
+                
+                Text("Modal Details")
+                    .font(.system(size: 28, weight: .semibold, design: .rounded))
+                
+                Text("Navigate within a modal presentation")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
             }
+            .padding(.bottom, 15)
             
-            Button(
-                action: {
+            VStack(spacing: 16) {
+                GradientButton(
+                    title: "Navigate to Destination One",
+                    icon: "arrow.turn.down.right",
+                    gradient: [.purple, .indigo]
+                ) {
+                    router.push(destination: DestinationOne())
+                }
+                
+                GradientButton(
+                    title: "Show Alert Example",
+                    icon: "bell.badge.fill",
+                    gradient: [.pink.opacity(0.4), .purple.opacity(0.6)]
+                ) {
                     router.presentAlert(alertItem: .init(
                         title: "Example Alert",
-                        message: "Example Alert Message, explaining different style of the buttons",
+                        message: "This alert won't dismiss the sheet. Try different button styles!",
                         actionButtons: [
-                            AlertActionButton(title: "Secondary Style", style: .secondary, action: { }),
-                            AlertActionButton(title: "Primary Style", style: .primary, action: { }),
-                            AlertActionButton(title: "Destructive Style", style: .destructive, action: { }),
-                            AlertActionButton(title: "Cancel Style", style: .cancel, action: { })
+                            AlertActionButton(title: "Primary", style: .primary, action: { }),
+                            AlertActionButton(title: "Secondary", style: .secondary, action: { }),
+                            AlertActionButton(title: "Destructive", style: .destructive, action: { }),
+                            AlertActionButton(title: "Cancel", style: .cancel, action: { })
                         ]
                     ))
-                },
-                label: {
-                    Text("Present Alert")
                 }
-            )
+            }
+            .padding(.horizontal, 32)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(GradientBackground(gradient: [.purple, .indigo]))
         .navigationTitle("Details")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -45,8 +69,9 @@ struct Details: View {
                     router.dismiss()
                 } label: {
                     Image(systemName: "xmark")
+                        .font(.title3)
+                        .foregroundStyle(.secondary)
                 }
-                
             }
         }
     }
