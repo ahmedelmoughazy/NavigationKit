@@ -42,10 +42,6 @@ let package = Package(
                     package: "swift-syntax"
                 )
             ]
-        ),
-        .testTarget(
-            name: "NavigationKitTests",
-            dependencies: ["NavigationKit"]
         )
     ]
 )

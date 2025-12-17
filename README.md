@@ -30,7 +30,7 @@ Add NavigationKit to your project using Swift Package Manager:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/ahmedelmoughazy/NavigationKit.git", from: "0.1.1")
+    .package(url: "https://github.com/ahmedelmoughazy/NavigationKit.git", from: "0.2.0")
 ]
 ```
 
@@ -306,87 +306,6 @@ You can also manually trigger logging at any time:
 
 ```swift
 router.debugPrintCompleteHierarchy()
-```
-
-## Best Practices
-
-1. **Use @Routable Macro**: Apply the macro to all views you want to navigate to.
-
-2. **Inject Router**: Access the router via `@EnvironmentObject` in views that need navigation.
-
-3. **State Management**: Keep navigation state separate from view state—the router manages navigation, views manage content.
-
-4. **Testing**: Use the router's published properties to test navigation flows without UI.
-
-## Examples
-
-### Complex Navigation Flow
-
-```swift
-@Routable
-struct ProductListView: View {
-    @EnvironmentObject var router: Router
-    
-    var body: some View {
-        List(products) { product in
-            Button(product.name) {
-                router.push(destination: ProductDetailView(productId: product.id))
-            }
-        }
-        .navigationTitle("Products")
-        .toolbar {
-            Button("Cart") {
-                router.present(destination: CartView(), as: .sheet)
-            }
-        }
-    }
-}
-
-@Routable
-struct ProductDetailView: View {
-    let productId: String
-    @EnvironmentObject var router: Router
-    
-    var body: some View {
-        VStack {
-            // Product details...
-            
-            Button("Buy Now") {
-                // Complete purchase then navigate to confirmation
-                router.applyPath([
-                    ProductListView(),
-                    OrderConfirmationView(orderId: "456")
-                ])
-            }
-        }
-    }
-}
-```
-
-### Conditional Navigation
-
-```swift
-struct LoginView: View {
-    @EnvironmentObject var router: Router
-    @State private var isLoggedIn = false
-    
-    var body: some View {
-        Button("Login") {
-            // Perform login...
-            if isLoggedIn {
-                router.push(destination: .homeView)
-            } else {
-                router.alertItem = AlertItem(
-                    title: "Login Failed",
-                    message: "Invalid credentials",
-                    actionButtons: [
-                        AlertActionButton(title: "OK", style: .cancel)
-                    ]
-                )
-            }
-        }
-    }
-}
 ```
 
 ## Contributing
