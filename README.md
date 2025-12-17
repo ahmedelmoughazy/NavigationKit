@@ -6,6 +6,9 @@ A lightweight navigation system for SwiftUI applications that provides programma
 [![Platform](https://img.shields.io/badge/Platform-iOS%2016.0%2B-blue.svg)](https://developer.apple.com/swift)
 [![SPM](https://img.shields.io/badge/SPM-Compatible-brightgreen.svg)](https://swift.org/package-manager)
 
+# Demo
+![Demo](https://github.com/user-attachments/assets/a9a222e0-3904-48d0-ad05-3f6b47ff0a22)
+
 ## Features
 
 - **Type-Safe Navigation**: Strongly-typed routing with compile-time safety
