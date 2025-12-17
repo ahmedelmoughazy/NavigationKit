@@ -1,25 +1,25 @@
 # NavigationKit
 
-A powerful, type-safe navigation system for SwiftUI applications that provides programmatic navigation with hierarchical state management.
+A lightweight navigation system for SwiftUI applications that provides programmatic navigation with hierarchical state management.
 
-[![Swift](https://img.shields.io/badge/Swift-6.1+-orange.svg)](https://swift.org)
+[![Swift](https://img.shields.io/badge/Swift-5.9+-orange.svg)](https://swift.org)
 [![Platform](https://img.shields.io/badge/Platform-iOS%2016.0%2B-blue.svg)](https://developer.apple.com/swift)
 [![SPM](https://img.shields.io/badge/SPM-Compatible-brightgreen.svg)](https://swift.org/package-manager)
 
 ## Features
 
-- ✨ **Type-Safe Navigation**: Strongly-typed routing with compile-time safety
-- 🔄 **Hierarchical Navigation**: Automatic parent-child router management
-- 📱 **Modal Presentations**: Built-in support for sheets and full-screen covers
-- 🎯 **Programmatic Control**: Push, pop, present, and dismiss from anywhere
-- 🔍 **Debug Support**: Comprehensive hierarchy logging for development
-- ⚡️ **Reactive Updates**: Combine publishers for navigation state changes
-- 🎨 **Animation Control**: Optional animation for all navigation actions
+- **Type-Safe Navigation**: Strongly-typed routing with compile-time safety
+- **Layered Navigation**: Present views on top of each other, modals within modals, all managed automatically
+- **Modal Presentations**: Built-in support for sheets and full-screen covers
+- **Programmatic Control**: Push, pop, present, and dismiss from anywhere
+- **Debug Support**: Comprehensive hierarchy logging for development
+- **Reactive Updates**: Combine publishers for navigation state changes
+- **Animation Control**: Optional animation for all navigation actions
 
 ## Requirements
 
 - iOS 16.0+
-- Swift 6.1+
+- Swift 5.9+
 - Xcode 15.0+
 
 ## Installation
@@ -30,7 +30,7 @@ Add NavigationKit to your project using Swift Package Manager:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/ahmedelmoughazy/NavigationKit.git", from: "0.1.0")
+    .package(url: "https://github.com/ahmedelmoughazy/NavigationKit.git", from: "0.1.1")
 ]
 ```
 
@@ -52,13 +52,6 @@ Mark your views with the `@Routable` macro:
 ```swift
 import SwiftUI
 import NavigationKit
-
-@Routable
-struct HomeView: View {
-    var body: some View {
-        Text("Home")
-    }
-}
 
 @Routable
 struct ProfileView: View {
@@ -92,7 +85,7 @@ struct MyApp: App {
     var body: some Scene {
         WindowGroup {
             BaseNavigation(router: router) {
-                HomeView()
+                RootView()
             }
         }
     }
@@ -104,7 +97,7 @@ struct MyApp: App {
 Access the router from any view using `@EnvironmentObject` and navigate programmatically:
 
 ```swift
-struct HomeView: View {
+struct RootView: View {
     @EnvironmentObject var router: Router
     
     var body: some View {
