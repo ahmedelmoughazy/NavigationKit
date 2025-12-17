@@ -13,19 +13,17 @@ struct DestinationTwo: View {
     
     var body: some View {
         VStack {
-            Button("Show Destination Three") {
-                router.push(destination: DestinationThree())
-            }
-            
-            Button("Pop to Root") {
-                router.popAll()
-            }
+            Button(action: {
+                router.present(destination: Details(text: "Detail"), as: .sheet)
+            }, label: {
+                Text("Present Details")
+            })
         }
         .navigationTitle("Destination Two")
     }
     
     @EnvironmentObject private var router: Router
-
+    
 }
 
 #Preview {
